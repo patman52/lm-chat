@@ -45,6 +45,18 @@ function createBubble(label, text, cssClass, renderMarkdown = false) {
 
     if (renderMarkdown) {
         body.innerHTML = marked.parse(text);
+
+        if (window.renderMathInElement) {
+            window.renderMathInElement(body, {
+                delimiters: [
+                    { left: "$$", right: "$$", display: true },
+                    { left: "\\[", right: "\\]", display: true },
+                    { left: "$", right: "$", display: false },
+                    { left: "\\(", right: "\\)", display: false }
+                ]
+            });
+        }
+
     } else {
         body.textContent = text;
     }
