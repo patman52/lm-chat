@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LM Chat</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
+</head>
+<body>
+    <main class="layout">
+        <header class="page-header">
+            <p class="eyebrow">LM Chat</p>
+            <h1>Talk to your model</h1>
+        </header>
+
+        <section class="chat-shell">
+            <div class="model-selection">
+                <label for="model-select">Model</label>
+                <select id="model-select" name="model">
+                    {% for model in model_names %}
+                        <option value="{{ model }}">{{ model }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="chat-container">
+                <div class="chat-messages" id="chat-messages" aria-live="polite">
+                    <!-- chat messages will be appended here -->
+                </div>
+                <form class="chat-input" onsubmit="return false;">
+                    <textarea id="chat-input" placeholder="Type your message here..." rows="6"></textarea>
+                    <button id="send-button" type="submit">Send</button>
+                </form>
+            </div>
+        </section>
+    </main>
+<script src="{{ url_for('static', path='base.js') }}" defer></script>
+</body>
+</html>

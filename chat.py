@@ -12,7 +12,7 @@ class ChatClient:
     def __init__(self):
         self.api_token = self.load_api_token()
         self.api_url = self.load_api_url()
-        self.models: List[str] = []
+        self._models: List[str] = []
 
         if not self.api_token:
             raise ValueError("LM API token not found. Please set the LM_API_TOKEN environment variable.")
@@ -40,6 +40,16 @@ class ChatClient:
         return os.environ.get("LM_API_URL")
 
 
+    @property
+    def model_names(self) -> List[str]:
+        """
+        Get the list of available models.
+
+        Returns:
+            List[str]: The list of available models.
+        """
+        return [model["display_name"] for model in self._models]
+
     def get_available_models(self, verbose: bool = False) -> None:
         """
         Get the list of available models from the LM, loads the associated data and print them.
@@ -62,28 +72,45 @@ class ChatClient:
 
         reponse_data = response.json()
         if "models" in reponse_data:
-            self.models = reponse_data["models"]
+            self._models = reponse_data["models"]
 
         if verbose:
             print(json.dumps(reponse_data, indent=2))
         else:
             # just print the model names
-            model_names = [model["display_name"] for model in self.models]
+            model_names = [model["display_name"] for model in self._models]
             print("Available models:")
             for model in model_names:
                 print(model)
 
+    def _get_model_key_by_name(self, model_name: str) -> Optional[str]:
+        """
+        Get the model key by its display name.
 
-    def send_prompt(self, message: str, model: str) -> None:
+        Args:
+            model_name (str): The display name of the model.
+
+        Returns:
+            Optional[str]: The model key if found, otherwise None.
+        """
+        for model in self._models:
+            if model["display_name"] == model_name:
+                return model["key"]
+        return None
+
+    def send_prompt(self, message: str, model_name: str) -> str:
         """
         Send a prompt to the LM API and print the response.
 
         Args:
             message (str): The prompt to send to the LM API.
-            model (str): The name of the model to use for generating the response.
+            model_name (str): The name of the model to use for generating the response.
         Returns:
-            None
+            str: The response from the LM API.
         """
+        model_key = self._get_model_key_by_name(model_name)
+        if not model_key:
+            raise ValueError(f"Model '{model_name}' not found.")
         response = requests.post(
             f"{self.api_url}/chat",
             headers={
@@ -91,8 +118,11 @@ class ChatClient:
                 "Content-Type": "application/json"
             },
             json={
-                "model": model,
+                "model": model_key,
                 "input": message
             }
         )
-        print(json.dumps(response.json(), indent=2))
+        response.raise_for_status()
+        response_data = response.json()
+
+        return response_data.get("output", "")
