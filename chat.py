@@ -15,7 +15,7 @@ class ChatClient:
         self._models: List[str] = []
 
         if not self.api_token:
-            raise ValueError("LM API token not found. Please set the LM_API_TOKEN environment variable.")
+            print("WARNING - LM API token not found. Please set the LM_API_TOKEN environment variable if using authentication.")
         if not self.api_url:
             raise ValueError("LM API URL not found. Please set the LM_API_URL environment variable.")
 
@@ -70,18 +70,12 @@ class ChatClient:
 
         response.raise_for_status()
 
-        reponse_data = response.json()
-        if "models" in reponse_data:
-            self._models = reponse_data["models"]
+        response_data = response.json()
+        if "models" in response_data:
+            self._models = response_data["models"]
 
         if verbose:
-            print(json.dumps(reponse_data, indent=2))
-        else:
-            # just print the model names
-            model_names = [model["display_name"] for model in self._models]
-            print("Available models:")
-            for model in model_names:
-                print(model)
+            print(json.dumps(response_data, indent=2))
 
     def _get_model_key_by_name(self, model_name: str) -> Optional[str]:
         """
@@ -111,12 +105,17 @@ class ChatClient:
         model_key = self._get_model_key_by_name(model_name)
         if not model_key:
             raise ValueError(f"Model '{model_name}' not found.")
+
+        headers = {
+            "Content-Type": "application/json"
+        }
+
+        if self.api_token:
+            headers["Authorization"] = f"Bearer {self.api_token}"
+
         response = requests.post(
             f"{self.api_url}/chat",
-            headers={
-                "Authorization": f"Bearer {self.api_token}",
-                "Content-Type": "application/json"
-            },
+            headers=headers,
             json={
                 "model": model_key,
                 "input": message

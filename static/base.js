@@ -22,6 +22,34 @@ function toDisplayText(value) {
     return typeof value === "string" ? value : "";
 }
 
+function createBubble(label, text, cssClass, renderMarkdown = false) {
+    const wrapper = document.createElement("div");
+    wrapper.className = `chat-message ${cssClass}`;
+
+    // Apply red color for user messages
+    if (cssClass === "user-message") {
+        wrapper.style.color = "#dc3545";  // Bootstrap danger/red color
+    }
+
+    const tag = document.createElement("span");
+    tag.className = "message-tag";
+    tag.textContent = label;
+
+    const body = document.createElement("div");
+    body.className = "message-body";
+
+    if (renderMarkdown) {
+        body.innerHTML = marked.parse(text);
+    } else {
+        body.textContent = text;
+    }
+
+    wrapper.appendChild(tag);
+    wrapper.appendChild(body);
+    return wrapper;
+}
+
+
 sendButton.addEventListener("click", async () => {
     const userMessage = chatInput.value.trim();
     if (!userMessage) return;
@@ -43,15 +71,19 @@ sendButton.addEventListener("click", async () => {
     const result = await response.json();
 
     if (result.status === "success") {
-        const messageElement = document.createElement("div");
-        messageElement.className = "chat-message user-message";
-        messageElement.textContent = userMessage;
-        chatMessages.appendChild(messageElement);
+        // Add user message
+        chatMessages.appendChild(createBubble("You:", userMessage, "user-message", false));
         chatInput.value = "";
+        // Add bot response
+        chatMessages.appendChild(createBubble("Bot:", toDisplayText(result.response), "bot-message", true));
+        
+        // Add separator before adding the bot message
+        const separator = document.createElement("div");
+        separator.className = "message-separator";
+        separator.innerHTML = "<hr>";
 
-        const responseElement = document.createElement("div");
-        responseElement.className = "chat-message bot-message";
-        responseElement.textContent = toDisplayText(result.response);
-        chatMessages.appendChild(responseElement);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    } else {
+        alert("Error: " + result.message);
     }
 });

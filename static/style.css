@@ -133,6 +133,20 @@ body {
 	gap: 10px;
 }
 
+.message-separator {
+    border: none;
+    border-top: 1px solid #e0e0e0;
+    margin: 15px 0;
+}
+
+.user-message {
+    color: #dc3545 !important; /* Red for user prompts */
+}
+
+.user-message .message-tag {
+    color: #dc3545;
+}
+
 #send-button {
 	cursor: pointer;
 	border: 1px solid transparent;
