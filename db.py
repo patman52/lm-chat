@@ -150,7 +150,7 @@ class Database:
             A list of ChatMessage objects associated with the specified chat ID.
         """
         session = self.get_session()
-        return session.query(ChatMessage).filter(ChatMessage.chat_id == chat_id).order_by(ChatMessage.index).all()
+        return session.query(ChatMessage).filter(ChatMessage.chat_id == chat_id).order_by(ChatMessage.id).all()
 
 
 db = Database(SessionLocal, engine)

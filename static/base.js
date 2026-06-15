@@ -78,12 +78,16 @@ async function createNewChat(chat_title) {
     } catch (error) {
         alert("An error occurred while creating a new chat.");
     }
+
+    // Refresh the chat history list to include the new chat
+    getChatHistory();
 }
 
 
 newChatButton.addEventListener("click", async () => {
     // clears the chat history and messages, and creates a new chat with the title from the input field (or "New Chat" if the input is empty)
     await createNewChat(chatTitleInput.value.trim() || "New Chat");
+
 });
 
 
