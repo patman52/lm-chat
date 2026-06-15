@@ -81,6 +81,7 @@ sendButton.addEventListener("click", async () => {
         const separator = document.createElement("div");
         separator.className = "message-separator";
         separator.innerHTML = "<hr>";
+        chatMessages.appendChild(separator);
 
         chatMessages.scrollTop = chatMessages.scrollHeight;
     } else {

@@ -1,4 +1,5 @@
 
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI, Request
@@ -6,18 +7,32 @@ from fastapi.responses import JSONResponse, RedirectResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from chat import ChatClient
-
+from chat_client import ChatClient
+from db import db
 
 _PROJECT_ROOT = Path(__file__).parent
 
-app = FastAPI()
 chat_client = ChatClient()
 
+def get_models():
+    chat_client.get_available_models()
+
+def init_db():
+    db.create_schema()
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    init_db()
+    get_models()
+    yield
+
+app = FastAPI(lifespan=lifespan)
+
 app.state.chat_client = chat_client
+app.state.db = db
 app.mount("/static", StaticFiles(directory=str(_PROJECT_ROOT / "static")), name="static")
 templates = Jinja2Templates(directory="templates")
-chat_client.get_available_models()
+
 
 @app.get("/")
 def redirect_to_chat():
@@ -34,6 +49,8 @@ def chat(request: Request):
 
     return templates.TemplateResponse(request, "base.html", context)
 
+def _
+
 @app.post("/chat/send")
 async def send_prompt(request: Request):
     data = await request.json()
@@ -46,3 +63,4 @@ async def send_prompt(request: Request):
     response = chat_client.send_prompt(message, model)
 
     return JSONResponse(content={"status": "success", "response": response})
+
