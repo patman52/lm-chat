@@ -1,6 +1,6 @@
 # lm-chat
 
-Basic Chat Interface Wrapper for LM Studio or similar LM server using a user friendly chat form. The form is servered via Uvicorn with a FastAPI backend.
+Basic Chat Interface Wrapper for LM Studio or a similar LM server using a user-friendly chat form. The form is served via Uvicorn with a FastAPI backend.
 
 ## Quickstart
 
