@@ -2,6 +2,7 @@ const sendButton = document.getElementById("send-button");
 const chatInput = document.getElementById("chat-input");
 const chatMessages = document.getElementById("chat-messages");
 const modelSelect = document.getElementById("model-select");
+const conversationHistory = [];
 
 function toDisplayText(value) {
     if (Array.isArray(value)) {
@@ -28,7 +29,7 @@ function createBubble(label, text, cssClass, renderMarkdown = false) {
 
     // Apply red color for user messages
     if (cssClass === "user-message") {
-        wrapper.style.color = "#dc3545";  // Bootstrap danger/red color
+        wrapper.style.color = "#ff0019";  // Bootstrap danger/red color
     }
 
     const tag = document.createElement("span");
@@ -50,41 +51,63 @@ function createBubble(label, text, cssClass, renderMarkdown = false) {
 }
 
 
-sendButton.addEventListener("click", async () => {
+sendButton.addEventListener("click", async (event) => {
+    event.preventDefault();
+
     const userMessage = chatInput.value.trim();
     if (!userMessage) return;
+
+    // clear the user message input immediately to give feedback that the message is being processed
+    chatInput.value = "";
+
+    // Add user message
+    chatMessages.appendChild(createBubble("You:", userMessage, "user-message", false));
+    chatInput.value = "";
+
+    conversationHistory.push({ sender: "user", content: userMessage });
+
+    // Add separator before adding the bot message
+    const separator = document.createElement("div");
+    separator.className = "message-separator";
+    separator.innerHTML = "<hr>";
+    chatMessages.appendChild(separator);
 
     const selectedModel = modelSelect.value;
     if (!selectedModel) return;
 
-    const response = await fetch("/chat/send", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            message: userMessage,
-            model: selectedModel
-        })
-    });
+    sendButton.classList.add("loading");
+    sendButton.disabled = true;
+    sendButton.setAttribute("aria-busy", "true");
 
-    const result = await response.json();
+    try {
 
-    if (result.status === "success") {
-        // Add user message
-        chatMessages.appendChild(createBubble("You:", userMessage, "user-message", false));
-        chatInput.value = "";
-        // Add bot response
-        chatMessages.appendChild(createBubble("Bot:", toDisplayText(result.response), "bot-message", true));
-        
-        // Add separator before adding the bot message
-        const separator = document.createElement("div");
-        separator.className = "message-separator";
-        separator.innerHTML = "<hr>";
-        chatMessages.appendChild(separator);
+        const response = await fetch("/chat/send", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                message: conversationHistory.map(item => item.content).join("\n"),
+                model: selectedModel
+            })
+        });
 
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-    } else {
-        alert("Error: " + result.message);
+        const result = await response.json();
+
+        if (result.status === "success") {
+            // Add bot response
+            chatMessages.appendChild(createBubble("Bot:", toDisplayText(result.response), "bot-message", true));
+            conversationHistory.push({ sender: "bot", content: result.response });
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        } else {
+            alert("Error: " + result.message);
+        }
+
+    } catch (error) {
+        alert("An error occurred while sending the message.");
+    } finally {
+        sendButton.classList.remove("loading");
+        sendButton.disabled = false;
+        sendButton.removeAttribute("aria-busy");
     }
 });

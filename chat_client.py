@@ -52,7 +52,7 @@ class ChatClient:
 
     def get_available_models(self, verbose: bool = False) -> None:
         """
-        Get the list of available models from the LM, loads the associated data and print them.
+        Get the list of available models from the LM and loads the associated data.
 
         Args:
             verbose (bool): Whether to print the list of models. Defaults to False.

@@ -159,6 +159,35 @@ body {
 	justify-self: stretch;
 }
 
+#send-button.loading {
+    position: relative;
+    color: transparent;
+    cursor: wait;
+    pointer-events: none;
+    filter: saturate(0.9);
+}
+
+#send-button.loading::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 1rem;
+    height: 1rem;
+    margin-left: -0.5rem;
+    margin-top: -0.5rem;
+    border: 2px solid rgba(242, 249, 239, 0.45);
+    border-top-color: #f2f9ef;
+    border-radius: 50%;
+    animation: button-spin 0.7s linear infinite;
+}
+
+@keyframes button-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
 #send-button:hover {
 	transform: translateY(-1px);
 	filter: saturate(1.1);

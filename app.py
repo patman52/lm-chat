@@ -49,7 +49,6 @@ def chat(request: Request):
 
     return templates.TemplateResponse(request, "base.html", context)
 
-def _
 
 @app.post("/chat/send")
 async def send_prompt(request: Request):
