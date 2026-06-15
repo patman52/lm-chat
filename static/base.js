@@ -90,6 +90,25 @@ newChatButton.addEventListener("click", async () => {
 function loadChat(chatId) {
     // fetches the chat history for the given chat ID and populates the chat messages area with the conversation history
     fetch(`/chat/${chatId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === "success") {
+                conversationHistory = data.messages;
+                chatMessages.innerHTML = "";
+                conversationHistory.forEach(msg => {
+                    const cssClass = msg.sender === "user" ? "user-message" : "bot-message";
+                    chatMessages.appendChild(createBubble(`${msg.sender}:`, msg.message, cssClass, true));
+                });
+                currentChatId = chatId;
+            } else {
+                alert("Error: " + data.message);
+            }
+        })
+        .catch(error => {
+            alert("An error occurred while loading the chat.");
+        });
+}
+
 
 async function getChatHistory(title_filter = "") {
     let result;
@@ -115,6 +134,17 @@ async function getChatHistory(title_filter = "") {
 }
 
 
+function save_chat_message(chatId, sender, message) {
+    // sends a POST request to save a chat message to the server for the given chat ID, sender, and message content
+    fetch("/chat/new-message", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ chat_id: chatId, sender: sender, message: message })
+    });
+}
+
 sendButton.addEventListener("click", async (event) => {
     event.preventDefault();
 
@@ -125,6 +155,9 @@ sendButton.addEventListener("click", async (event) => {
 
     const userMessage = chatInput.value.trim();
     if (!userMessage) return;
+
+    // save the user message to the server immediately
+    save_chat_message(currentChatId, "user", userMessage);
 
     // clear the user message input immediately to give feedback that the message is being processed
     chatInput.value = "";
@@ -165,9 +198,12 @@ sendButton.addEventListener("click", async (event) => {
 
         if (result.status === "success") {
             // Add bot response
-            chatMessages.appendChild(createBubble("Bot:", toDisplayText(result.response), "bot-message", true));
+            let displayText = toDisplayText(result.response);
+            chatMessages.appendChild(createBubble("Bot:", displayText, "bot-message", true));
             conversationHistory.push({ sender: "bot", content: result.response });
             chatMessages.scrollTop = chatMessages.scrollHeight;
+            // save the bot message to the server immediately
+            save_chat_message(currentChatId, "bot", displayText);
         } else {
             alert("Error: " + result.message);
         }

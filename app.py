@@ -50,6 +50,13 @@ def chat(request: Request):
     return templates.TemplateResponse(request, "base.html", context)
 
 
+@app.get("/chat/{chat_id}")
+def get_chat_history(request: Request, chat_id: int):
+    chat_messages = app.state.db.get_chat_messages(chat_id)
+    messages_data = [{"sender": msg.sender, "message": msg.message} for msg in chat_messages]
+    return JSONResponse(content={"status": "success", "messages": messages_data})
+
+
 @app.get("/chats")
 def get_chats(request: Request, title_query: str = None, max_results: int = 25):
     chats = app.state.db.get_multiple_chats(title_query, max_results)
@@ -97,4 +104,3 @@ async def send_prompt(request: Request):
     response = chat_client.send_prompt(message, model)
 
     return JSONResponse(content={"status": "success", "response": response})
-
