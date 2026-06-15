@@ -15,8 +15,8 @@
             <p class="eyebrow">LM Chat</p>
             <h1>Talk to your model</h1>
         </header>
-
-        <section class="chat-shell">
+        <!-- Chat container to the left -->
+        <section id="chat-shell" class="chat-section">
             <div class="model-selection">
                 <label for="model-select">Model</label>
                 <select id="model-select" name="model">
@@ -25,8 +25,13 @@
                     {% endfor %}
                 </select>
             </div>
-
+            
             <div class="chat-container">
+                <div class="chat-header">
+                    <label for="chat-title-input">Chat Title</label>
+                    <input type="text" id="chat-title-input" placeholder="Chat Title" aria-label="Chat Title">
+                    <button id="new-chat-button">New Chat</button>
+                </div>
                 <div class="chat-messages" id="chat-messages" aria-live="polite">
                     <!-- chat messages will be appended here -->
                 </div>
@@ -35,6 +40,12 @@
                     <button id="send-button" type="submit">Send</button>
                 </form>
             </div>
+        </section>
+        <!-- Sidebar to the right -->
+        <section id="sidebar" class="sidebar">
+            <h2>Saved Chats</h2>
+            <ul id="saved-chats-list">
+            </ul>
         </section>
     </main>
 <script src="{{ url_for('static', path='base.js') }}" defer></script>

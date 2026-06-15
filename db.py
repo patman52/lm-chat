@@ -84,6 +84,23 @@ class Database:
         if chat_title is not None:
             return session.query(Chat).filter(Chat.title == chat_title).first()
 
+    def get_multiple_chats(self, title_query: Optional[str] = None, max_results: int = 25) -> list[Chat]:
+        """
+        Get multiple chats, optionally filtered by a title query.
+
+        Args:
+            title_query: An optional string to filter chats by title (case-insensitive, partial match).
+            max_results: The maximum number of chat results to return.
+
+        Returns:
+            A list of Chat objects.
+        """
+        session = self.get_session()
+        query = session.query(Chat)
+        if title_query:
+            query = query.filter(Chat.title.ilike(f"%{title_query}%"))
+        return query.limit(max_results).all()
+
     def delete_chat(self, chat_id: Optional[int] = None, chat_title: Optional[str] = None) -> None:
         """
         Delete a chat by its ID or title.

@@ -50,6 +50,41 @@ def chat(request: Request):
     return templates.TemplateResponse(request, "base.html", context)
 
 
+@app.get("/chats")
+def get_chats(request: Request, title_query: str = None, max_results: int = 25):
+    chats = app.state.db.get_multiple_chats(title_query, max_results)
+    return JSONResponse(content={
+        "status": "success",
+        "chats": [{"title": chat.title, "id": chat.id} for chat in chats]
+    })
+
+
+@app.post("/chat/new")
+async def new_chat(request: Request):
+    data = await request.json()
+
+    chat_title = data.get("title", "New Chat")
+
+    chat = app.state.db.create_chat(chat_title)
+
+    # Handle new chat creation logic here
+    return JSONResponse(content={"status": "success", "chat_id": chat.id})
+
+
+@app.post("/chat/new-message")
+async def new_message(request: Request):
+    data = await request.json()
+
+    chat_id = data.get("chat_id")
+    sender = data.get("sender")
+    message = data.get("message")
+
+    app.state.db.create_chat_message(chat_id, sender, message)
+
+    # Handle new message logic here (e.g., save to database)
+    return JSONResponse(content={"status": "success", "chat_id": chat_id, "sender": sender, "message": message})
+
+
 @app.post("/chat/send")
 async def send_prompt(request: Request):
     data = await request.json()
