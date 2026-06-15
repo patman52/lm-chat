@@ -1,6 +1,6 @@
 # lm-chat
 
-Basic Chat Interface Wrapper for LM Studio or similar LM server using a user friendly chat form. The form is servered via Uvicorn with a FastAPI backend.
+Basic Chat Interface Wrapper for LM Studio or a similar LM server using a user-friendly chat form. The form is served via Uvicorn with a FastAPI backend.
 
 ## Quickstart
 
@@ -26,4 +26,4 @@ By default, the server will bind to "127.0.0.1:8000". To specify a different hos
 
 `python main.py --host 127.0.0.1 --port 8080`
 
-Note that while the uvicorn server can be hosted to 0.0.0.0 for use on a local network server, the FastAPI app currently does not support any authetication.
+Note that while the uvicorn server can be hosted to 0.0.0.0 for use on a local network server, the FastAPI app currently does not support any authentication.
