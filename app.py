@@ -104,3 +104,9 @@ async def send_prompt(request: Request):
     response = chat_client.send_prompt(message, model)
 
     return JSONResponse(content={"status": "success", "response": response})
+
+
+@app.delete("/chat/{chat_id}")
+async def delete_chat(request: Request, chat_id: int):
+    app.state.db.delete_chat(chat_id)
+    return JSONResponse(content={"status": "success", "chat_id": chat_id})

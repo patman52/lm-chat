@@ -30,17 +30,24 @@
             </div>
             
             <div class="chat-container">
-                <div class="chat-header">
-                    <label for="chat-title-input">Chat Title</label>
-                    <input type="text" id="chat-title-input" placeholder="Chat Title" aria-label="Chat Title">
-                    <button id="new-chat-button">New Chat</button>
-                </div>
                 <div class="chat-messages" id="chat-messages" aria-live="polite">
                     <!-- chat messages will be appended here -->
                 </div>
+
                 <form class="chat-input" onsubmit="return false;">
                     <textarea id="chat-input" placeholder="Type your message here..." rows="6"></textarea>
+                    <button id="new-chat-button" type="button">New Chat</button>
+                    <!-- popup for chat title -->
+                    <div class="modal-box" id="chat-title-modal" style="display: none;">
+                        <h2>Enter Chat Title</h2>
+                        <input type="text" id="chat-title-input" placeholder="Chat Title">
+                        <div class="modal-actions">
+                            <button type="button" class="btn-cancel" id="cancel-chat-title">Cancel</button>
+                            <button type="button" class="btn-save" id="save-chat-title">Save</button>
+                        </div>
+                    </div>
                     <button id="send-button" type="submit">Send</button>
+                    <button id="delete-chat-button" type="button">Delete Chat</button>
                 </form>
             </div>
         </section>

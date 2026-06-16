@@ -4,6 +4,11 @@ const chatMessages = document.getElementById("chat-messages");
 const modelSelect = document.getElementById("model-select");
 const newChatButton = document.getElementById("new-chat-button");
 const searchChatsInput = document.getElementById("search-chats-input");
+const chatTitleModal = document.getElementById("chat-title-modal");
+const saveChatTitleButton = document.getElementById("save-chat-title");
+const cancelChatTitleButton = document.getElementById("cancel-chat-title");
+const deleteChatButton = document.getElementById("delete-chat-button");
+
 let conversationHistory = [];
 let currentChatId = null; // This will be set when a chat is loaded or created
 let chatTitleInput = document.getElementById("chat-title-input");
@@ -95,15 +100,16 @@ async function createNewChat(chat_title) {
     }
 
     // Refresh the chat history list to include the new chat
-    getChatHistory();
+    await getChatHistory();
+
+    // select the newly created chat in the chat list from it's id
+        const allListItems = document.querySelectorAll(".chat-list-item");
+        allListItems.forEach(item => item.classList.remove("chat-list-selected"));
+        const newChatListItem = Array.from(allListItems).find(item => item.textContent === chat_title);
+        if (newChatListItem) {
+            newChatListItem.classList.add("chat-list-selected");
+        }
 }
-
-
-newChatButton.addEventListener("click", async () => {
-    // clears the chat history and messages, and creates a new chat with the title from the input field (or "New Chat" if the input is empty)
-    await createNewChat(chatTitleInput.value.trim() || "New Chat");
-
-});
 
 
 function loadChat(chatId) {
@@ -121,6 +127,7 @@ function loadChat(chatId) {
                     conversationHistory.push({ sender: msg.sender, content: msg.message });
                 });
                 currentChatId = chatId;
+                chatTitleInput.value = data.title || "Chat";
             } else {
                 alert("Error: " + data.message);
             }
@@ -248,13 +255,80 @@ sendButton.addEventListener("click", async (event) => {
 });
 
 
-
 // Add event listener to the search input to filter chats as the user types
 searchChatsInput.addEventListener("input", (event) => {
     const query = event.target.value.trim();
     getChatHistory(query);
 });
 
+
+function openChatTitleModal() {
+    chatTitleModal.style.display = "grid";
+    chatTitleInput.value = ""; // Set the input value to the current chat title
+    chatTitleInput.focus();
+}
+
+
+function closeChatTitleModal() {
+    chatTitleModal.style.display = "none";
+}
+
+newChatButton.addEventListener("click", openChatTitleModal);
+
+
+saveChatTitleButton.addEventListener("click", async () => {
+    const newTitle = chatTitleInput.value.trim();
+    if (!newTitle) {
+        alert("Chat title cannot be empty.");
+        return;
+    }
+    await createNewChat(newTitle);
+    closeChatTitleModal();
+});
+
+cancelChatTitleButton.addEventListener("click", closeChatTitleModal);
+
+
+chatTitleInput.addEventListener("keydown", async (event) => {
+    if (event.key === "Enter") {
+        event.preventDefault();
+        const title = chatTitleInput.value.trim() || "New Chat";
+        await createNewChat(title);
+        closeChatTitleModal();
+    } else if (event.key === "Escape") {
+        closeChatTitleModal();
+    }
+});
+
+
+deleteChatButton.addEventListener("click", async () => {
+    if (!currentChatId) {
+        alert("No chat selected to delete.");
+        return;
+    }
+    if (!confirm("Are you sure you want to delete this chat? This action cannot be undone.")) {
+        return;
+    }
+    try {
+        const response = await fetch(`/chat/${currentChatId}`, {
+            method: "DELETE"
+        });
+        const result = await response.json();
+        if (result.status === "success") {
+            alert("Chat deleted successfully.");
+            currentChatId = null;
+            conversationHistory.length = 0;
+            chatMessages.innerHTML = "";
+            await getChatHistory();
+        }
+        else {
+            alert("Error: " + result.message);
+        }
+    } catch (error) {
+        alert("An error occurred while deleting the chat.");
+    }       
+
+});
 
 window.addEventListener('DOMContentLoaded', () => {
     getChatHistory();
