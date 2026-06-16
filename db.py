@@ -40,29 +40,16 @@ class Database:
         Returns:
             The created Chat object.
         """
-        session = self.get_session()
-        chat = Chat(title=chat_title)
-        session.add(chat)
-        session.commit()
-        session.refresh(chat)
-        return chat
-
-    def update_chat_title(self, chat_id: int, new_title: str) -> None:
-        """
-        Update the title of an existing chat.
-
-        Args:
-            chat_id: The ID of the chat to be updated.
-            new_title: The new title for the chat.
-
-        Returns:
-            None
-        """
-        session = self.get_session()
-        chat = session.query(Chat).filter(Chat.id == chat_id).first()
-        if chat:
-            chat.title = new_title
-            session.commit()
+        with self.get_session() as session:
+            try:
+                chat = Chat(title=chat_title)
+                session.add(chat)
+                session.commit()
+                session.refresh(chat)
+                return chat
+            except:
+                session.rollback()
+                raise
 
     def get_chat(self, chat_id: Optional[int] = None, chat_title: Optional[str] = None) -> Optional[Chat]:
         """
@@ -77,12 +64,12 @@ class Database:
         """
         if chat_id is None and chat_title is None:
             raise ValueError("Either chat_id or chat_title must be provided.")
-        session = self.get_session()
-        if chat_id is not None:
-            session = self.get_session()
-            return session.query(Chat).filter(Chat.id == chat_id).first()
-        if chat_title is not None:
-            return session.query(Chat).filter(Chat.title == chat_title).first()
+        with self.get_session() as session:
+            if chat_id is not None:
+                return session.query(Chat).filter(Chat.id == chat_id).first()
+            if chat_title is not None:
+                return session.query(Chat).filter(Chat.title == chat_title).first()
+
 
     def get_multiple_chats(self, title_query: Optional[str] = None, max_results: int = 25) -> list[Chat]:
         """
@@ -95,11 +82,12 @@ class Database:
         Returns:
             A list of Chat objects.
         """
-        session = self.get_session()
-        query = session.query(Chat)
-        if title_query:
-            query = query.filter(Chat.title.ilike(f"%{title_query}%"))
-        return query.order_by(Chat.id.desc()).limit(max_results).all()
+        with self.get_session() as session:
+            query = session.query(Chat)
+            if title_query:
+                query = query.filter(Chat.title.ilike(f"%{title_query}%"))
+            return query.order_by(Chat.id.desc()).limit(max_results).all()
+
 
     def delete_chat(self, chat_id: Optional[int] = None, chat_title: Optional[str] = None) -> None:
         """
@@ -112,15 +100,19 @@ class Database:
 
         if chat_id is None and chat_title is None:
             raise ValueError("Either chat_id or chat_title must be provided.")
-        session = self.get_session()
-        if chat_id is not None:
-            chat = session.query(Chat).filter(Chat.id == chat_id).first()
-        elif chat_title is not None:
-            chat = session.query(Chat).filter(Chat.title == chat_title).first()
-        if chat:
-            session.delete(chat)
-            session.commit()
-            
+        with self.get_session() as session:
+            try:
+                if chat_id is not None:
+                    chat = session.query(Chat).filter(Chat.id == chat_id).first()
+                elif chat_title is not None:
+                    chat = session.query(Chat).filter(Chat.title == chat_title).first()
+                if chat:
+                    session.delete(chat)
+                    session.commit()
+            except:
+                session.rollback()
+                raise
+
     def create_chat_message(self, chat_id: int, sender: str, message: str) -> ChatMessage:
         """
         Create a new chat message in the database.
@@ -133,12 +125,17 @@ class Database:
         Returns:
             The created ChatMessage object.
         """
-        session = self.get_session()
-        chat_message = ChatMessage(chat_id=chat_id, sender=sender, message=message)
-        session.add(chat_message)
-        session.commit()
-        session.refresh(chat_message)
-        return chat_message
+        with self.get_session() as session:
+            try:
+                chat_message = ChatMessage(chat_id=chat_id, sender=sender, message=message)
+                session.add(chat_message)
+                session.commit()
+                session.refresh(chat_message)
+                return chat_message
+            except:
+                session.rollback()
+                raise
+        
 
     def get_chat_messages(self, chat_id: int) -> list[ChatMessage]:
         """
@@ -149,8 +146,9 @@ class Database:
         Returns:
             A list of ChatMessage objects associated with the specified chat ID.
         """
-        session = self.get_session()
-        return session.query(ChatMessage).filter(ChatMessage.chat_id == chat_id).order_by(ChatMessage.id).all()
+        with self.get_session() as session:
+            return session.query(ChatMessage).filter(ChatMessage.chat_id == chat_id).order_by(ChatMessage.id).all()
+
 
 
 db = Database(SessionLocal, engine)

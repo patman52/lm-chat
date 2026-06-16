@@ -11,4 +11,4 @@ DATABASE_URL = "sqlite:///./lm_chat.db"
 
 engine = create_engine(DATABASE_URL, future=True, pool_pre_ping=True)
 
-SessionLocal = sessionmaker(bind=engine, autoflush=True, autocommit=False, future=True)
+SessionLocal = sessionmaker(bind=engine, autoflush=True, autocommit=False, future=True, expire_on_commit=False)
