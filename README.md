@@ -1,6 +1,6 @@
 # 🤖 lm-chat
 
-> A user-friendly chat interface wrapper for LM Studio (or compatible LM servers) powered by FastAPI and Uvicorn.
+> A user-friendly chat interface wrapper for LM Studio powered by FastAPI and Uvicorn.
 
 ![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)
 ![FastAPI](https://img.shields.io/badge/FastAPI-Latest-green.svg)
@@ -14,8 +14,7 @@
 
 - 🎨 **Clean Chat Interface** - User-friendly form-based UI
 - 💾 **Persistent History** - All conversations saved locally via SQLite
-- 🔌 **Flexible Backend** - Works with LM Studio or any compatible API server
-- 🚀 **Fast & Lightweight** - Built on FastAPI + Uvicorn for optimal performance
+- 🚀 **Fast & Lightweight** - Built on FastAPI + Uvicorn for optimal performanc
 - 📱 **Local Network Ready** - Access from multiple devices on your network
 
 ---
@@ -24,7 +23,7 @@
 
 ### Prerequisites
 
-1. **LM Studio Installed** - Download from [lmstudio.ai](https://lmstudio.ai/)
+1. **LM Studio 0.3.6 or newer Installed** - Download from [lmstudio.ai](https://lmstudio.ai/)
 2. **Python 3.8+** - With pip package manager
 3. **Models Loaded** - Ensure you have at least one model downloaded in LM Studio
 
@@ -34,13 +33,18 @@
 
 ### Step 1: Configure LM Studio Server
 
-If you haven't already set up the LM Studio server:
+If you haven't already set up the LM Studio server on the machine you intend to run your LMs:
 
 1. Open LM Studio and navigate to the **Server** tab
 2. Start the local server (default port: `1234`)
 3. _(Optional)_ Create an API key for authentication via Settings → API Keys
 
 > 📚 For detailed setup instructions, see the [LM Studio Developer Documentation](https://lmstudio.ai/docs/developer)
+
+LM Chat uses two endpoints on the LM Studio Server:
+
+1. `GET /api/v1/models` for accessing the list of installed models
+2. `POST /api/v1/chat` for posting a new chat prompt.
 
 ---
 
@@ -67,7 +71,7 @@ Create a `.env` file in the project root (same directory as `main.py`):
 
 ```env
 # LM Studio server address and port
-LM_API_URL=http://localhost:1234/api/v1
+LM_API_URL=http://localhost:1234
 
 # Optional: API token for authentication
 LM_API_TOKEN=your-api-token-here
@@ -75,11 +79,11 @@ LM_API_TOKEN=your-api-token-here
 
 **Example configurations:**
 
-| Scenario                  | LM_API_URL                         |
-| ------------------------- | ---------------------------------- |
-| Localhost (default)       | `http://localhost:1234/api/v1`     |
-| Same machine, custom port | `http://127.0.0.1:8080/api/v1`     |
-| Network access            | `http://192.168.1.100:1234/api/v1` |
+| Scenario                  | LM_API_URL                  |
+| ------------------------- | --------------------------- |
+| Localhost (default)       | `http://localhost:1234/`    |
+| Same machine, custom port | `http://127.0.0.1:8080/`    |
+| Network access            | `http://192.168.1.100:1234` |
 
 ---
 
@@ -175,16 +179,3 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Uvicorn Docs:** [https://www.uvicorn.org](https://www.uvicorn.org)
 
 ---
-
-Made with ❤️ for local LLM enthusiasts
-
-## Key Improvements Made:
-
-| Category            | Changes                                                                                               |
-| ------------------- | ----------------------------------------------------------------------------------------------------- |
-| **Visual Appeal**   | Added emojis, badges, tables, and better formatting                                                   |
-| **Typos Fixed**     | "report" → "directory", "adress" → "address", "authetication" → "authentication", "is ran" → "is run" |
-| **Structure**       | Added Features section, Troubleshooting, Configuration table, Security note                           |
-| **Clarity**         | Better code blocks with language highlighting, clickable links, example configurations in tables      |
-| **Completeness**    | Added contribution guidelines, license reference, related links                                       |
-| **User Experience** | Clear step-by-step instructions, examples for different scenarios                                     |

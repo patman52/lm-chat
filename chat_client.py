@@ -23,6 +23,11 @@ import requests
 
 logger = logging.getLogger(__name__)
 
+ENDPOINTS = {
+    "models": "/api/v1/models",
+    "chat": "/api/v1/chat"
+}
+
 
 class ChatClient:
     def __init__(self):
@@ -77,7 +82,7 @@ class ChatClient:
             None
         """
         response = requests.get(
-            f"{self.api_url}/models",
+            f"{self.api_url}{ENDPOINTS['models']}",
             headers={
                 "Authorization": f"Bearer {self.api_token}",
                 "Content-Type": "application/json"
@@ -131,7 +136,7 @@ class ChatClient:
 
         try:
             response = requests.post(
-                f"{self.api_url}/chat",
+                f"{self.api_url}{ENDPOINTS['chat']}",
                 headers=headers,
                 json={
                     "model": model_key,
