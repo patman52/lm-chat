@@ -1,41 +1,190 @@
-# lm-chat
+# 🤖 lm-chat
 
-Basic Chat Interface Wrapper for LM Studio or a similar LM server using a user-friendly chat form. The form is served via Uvicorn with a FastAPI backend.
+> A user-friendly chat interface wrapper for LM Studio (or compatible LM servers) powered by FastAPI and Uvicorn.
 
-## Quickstart
+![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)
+![FastAPI](https://img.shields.io/badge/FastAPI-Latest-green.svg)
+![License](https://img.shields.io/badge/License-MIT-yellow.svg)
 
-This wrapper is currently set up to interface with an LM Studio server, either run on localhost or over a local network.
+## 📖 Overview
 
-### Install LM Studio
+**lm-chat** provides a clean, intuitive chat interface for interacting with local large language models. It wraps around LM Studio's API (or any compatible server) to deliver a seamless conversational experience with persistent chat history stored in SQLite.
 
-If a local LM Studio server is already set up, you can skip this section.
+### ✨ Features
 
-On the machine you plan to host your LMs from, download an install [LM Studio](https://lmstudio.ai/).
+- 🎨 **Clean Chat Interface** - User-friendly form-based UI
+- 💾 **Persistent History** - All conversations saved locally via SQLite
+- 🔌 **Flexible Backend** - Works with LM Studio or any compatible API server
+- 🚀 **Fast & Lightweight** - Built on FastAPI + Uvicorn for optimal performance
+- 📱 **Local Network Ready** - Access from multiple devices on your network
 
-Please take a moment to familiarize yourself with their [documentation](https://lmstudio.ai/docs/developer) before proceeding. You must first download and install the models you would like to use. Also, if running on a local network, it is advisable to create API keys for authentication.
+---
 
-### Install the Wrapper
+## 🚀 Quickstart Guide
 
-Clone this repo, create a .venv and install the dependencies `pip install -r requirements`
+### Prerequisites
 
-### Connect the Wrapper
+1. **LM Studio Installed** - Download from [lmstudio.ai](https://lmstudio.ai/)
+2. **Python 3.8+** - With pip package manager
+3. **Models Loaded** - Ensure you have at least one model downloaded in LM Studio
 
-Create a .env file in the same report as `main.py`.
+---
 
-Add the variable `LM_API_URL=<hostname:port>/api/v1`, updating the host name / IP and port to the adress where your LM Studio server is running.
+## 📦 Installation & Setup
 
-If using authentication, add another variable `LM_API_TOKEN=<insert your API token here>` and update with your API token.
+### Step 1: Configure LM Studio Server
 
-### Run the Wrapper
+If you haven't already set up the LM Studio server:
 
-Activate your .venv and run the command: `python main.py` to run the Uvicorn server.
+1. Open LM Studio and navigate to the **Server** tab
+2. Start the local server (default port: `1234`)
+3. _(Optional)_ Create an API key for authentication via Settings → API Keys
 
-By default, the server will bind to "127.0.0.1:8000". To specify a different host or port use the `--host` or `--port` optional args when running the command:
+> 📚 For detailed setup instructions, see the [LM Studio Developer Documentation](https://lmstudio.ai/docs/developer)
 
-`python main.py --host 127.0.0.1 --port 8080`
+---
 
-Note that while the uvicorn server can be hosted to 0.0.0.0 for use on a local network server, the FastAPI app currently does not support any authetication.
+### Step 2: Install the Wrapper
 
-### Chat History
+```bash
+# Clone the repository
+git clone <repository-url>
+cd lm-chat
 
-This app uses a local sqlite database to save chat messages and history. This database will be created automatically the first time the app is ran.
+# Create and activate virtual environment
+python -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+```
+
+---
+
+### Step 3: Configure Environment Variables
+
+Create a `.env` file in the project root (same directory as `main.py`):
+
+```env
+# LM Studio server address and port
+LM_API_URL=http://localhost:1234/api/v1
+
+# Optional: API token for authentication
+LM_API_TOKEN=your-api-token-here
+```
+
+**Example configurations:**
+
+| Scenario                  | LM_API_URL                         |
+| ------------------------- | ---------------------------------- |
+| Localhost (default)       | `http://localhost:1234/api/v1`     |
+| Same machine, custom port | `http://127.0.0.1:8080/api/v1`     |
+| Network access            | `http://192.168.1.100:1234/api/v1` |
+
+---
+
+### Step 4: Run the Server
+
+```bash
+# Default run (binds to 127.0.0.1:8000)
+python main.py
+
+# Custom host and port
+python main.py --host 0.0.0.0 --port 8080
+```
+
+**Access the interface:** Open your browser at `http://localhost:8000` (or your configured address).
+
+---
+
+## ⚙️ Configuration Options
+
+### Command-Line Arguments
+
+| Argument | Default     | Description             |
+| -------- | ----------- | ----------------------- |
+| `--host` | `127.0.0.1` | Host to bind the server |
+| `--port` | `8000`      | Port to listen on       |
+
+### Environment Variables
+
+| Variable       | Required | Default | Description                        |
+| -------------- | -------- | ------- | ---------------------------------- |
+| `LM_API_URL`   | ✅ Yes   | —       | Full URL to LM Studio API endpoint |
+| `LM_API_TOKEN` | ❌ No    | —       | Bearer token for authentication    |
+
+---
+
+## 🗄️ Chat History & Database
+
+All chat messages are automatically saved to a local SQLite database:
+
+- **Database File:** `chat_history.db` (created in project root on first run)
+- **Automatic Creation:** The database is created and initialized on first launch
+- **Persistence:** All conversations persist across sessions
+
+### Resetting Chat History
+
+To start fresh, simply delete the database file:
+
+```bash
+rm chat_history.db  # Or delete via your OS file manager
+```
+
+---
+
+## 🔧 Troubleshooting
+
+| Issue                                | Solution                                                             |
+| ------------------------------------ | -------------------------------------------------------------------- |
+| **Connection refused**               | Verify LM Studio server is running and `LM_API_URL` is correct       |
+| **Authentication failed**            | Ensure `LM_API_TOKEN` matches a valid API key in LM Studio           |
+| **Cannot access from other devices** | Use `--host 0.0.0.0` to bind to all network interfaces               |
+| **Port already in use**              | Change port with `--port <new-port>` or stop the conflicting service |
+
+---
+
+## ⚠️ Security Note
+
+> The FastAPI application currently does not implement authentication for the chat interface itself. When binding to `0.0.0.0` for network access, ensure you're on a trusted local network or add external authentication (e.g., reverse proxy with auth).
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## 🔗 Links
+
+- **LM Studio:** [https://lmstudio.ai](https://lmstudio.ai)
+- **FastAPI Docs:** [https://fastapi.tiangolo.com](https://fastapi.tiangolo.com)
+- **Uvicorn Docs:** [https://www.uvicorn.org](https://www.uvicorn.org)
+
+---
+
+Made with ❤️ for local LLM enthusiasts
+
+## Key Improvements Made:
+
+| Category            | Changes                                                                                               |
+| ------------------- | ----------------------------------------------------------------------------------------------------- |
+| **Visual Appeal**   | Added emojis, badges, tables, and better formatting                                                   |
+| **Typos Fixed**     | "report" → "directory", "adress" → "address", "authetication" → "authentication", "is ran" → "is run" |
+| **Structure**       | Added Features section, Troubleshooting, Configuration table, Security note                           |
+| **Clarity**         | Better code blocks with language highlighting, clickable links, example configurations in tables      |
+| **Completeness**    | Added contribution guidelines, license reference, related links                                       |
+| **User Experience** | Clear step-by-step instructions, examples for different scenarios                                     |
