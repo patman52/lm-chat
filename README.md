@@ -123,7 +123,7 @@ python main.py --host 0.0.0.0 --port 8080
 
 All chat messages are automatically saved to a local SQLite database:
 
-- **Database File:** `chat_history.db` (created in project root on first run)
+- **Database File:** `lm_chat.db` (created in project root on first run)
 - **Automatic Creation:** The database is created and initialized on first launch
 - **Persistence:** All conversations persist across sessions
 
@@ -132,7 +132,7 @@ All chat messages are automatically saved to a local SQLite database:
 To start fresh, simply delete the database file:
 
 ```bash
-rm chat_history.db  # Or delete via your OS file manager
+rm lm_chat.db  # Or delete via your OS file manager
 ```
 
 ---
