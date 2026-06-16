@@ -100,6 +100,15 @@ body {
 	transition: background 0.3s ease, border-color 0.3s ease;
 }
 
+.search-chats-input {
+	border-radius: 12px;
+	border: 1px solid rgba(62, 92, 45, 0.25);
+	background: rgba(255, 255, 255, 0.92);
+	color: var(--ink);
+	padding: 10px 14px;
+	font-family: inherit;
+	font-size: 2rem;
+}
 
 .chat-list-item {
 	padding: 10px 14px;
@@ -108,6 +117,17 @@ body {
 	background: rgba(255, 255, 255, 0.92);
 	cursor: pointer;
 	transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+/* Highlighted state - matches your JS class name */
+.chat-list-item.chat-list-selected {
+    background: rgba(62, 92, 45, 0.1);
+    border-color: rgba(62, 92, 45, 0.8);
+}
+
+/* Hover effect */
+.chat-list-item:hover:not(.chat-list-selected) {
+    background: rgba(62, 92, 45, 0.05);
 }
 
 .model-selection {

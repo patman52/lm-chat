@@ -3,10 +3,12 @@ const chatInput = document.getElementById("chat-input");
 const chatMessages = document.getElementById("chat-messages");
 const modelSelect = document.getElementById("model-select");
 const newChatButton = document.getElementById("new-chat-button");
+const searchChatsInput = document.getElementById("search-chats-input");
 let conversationHistory = [];
 let currentChatId = null; // This will be set when a chat is loaded or created
 let chatTitleInput = document.getElementById("chat-title-input");
 let savedChatsList = document.getElementById("saved-chats-list");
+
 
 function toDisplayText(value) {
     if (Array.isArray(value)) {
@@ -26,6 +28,7 @@ function toDisplayText(value) {
 
     return typeof value === "string" ? value : "";
 }
+
 
 function createBubble(label, text, cssClass, renderMarkdown = false) {
     const wrapper = document.createElement("div");
@@ -109,11 +112,13 @@ function loadChat(chatId) {
         .then(response => response.json())
         .then(data => {
             if (data.status === "success") {
-                conversationHistory = data.messages;
+                conversationHistory = []; // Clear the conversation history before loading new chat
                 chatMessages.innerHTML = "";
-                conversationHistory.forEach(msg => {
+                let messages = data.messages || [];
+                messages.forEach(msg => {
                     const cssClass = msg.sender === "user" ? "user-message" : "bot-message";
                     chatMessages.appendChild(createBubble(`${msg.sender}:`, msg.message, cssClass, true));
+                    conversationHistory.push({ sender: msg.sender, content: msg.message });
                 });
                 currentChatId = chatId;
             } else {
@@ -141,7 +146,15 @@ async function getChatHistory(title_filter = "") {
             const listItem = document.createElement("li");
             listItem.className = "chat-list-item";
             listItem.textContent = chat.title;
-            listItem.addEventListener("click", () => loadChat(chat.id));
+            listItem.addEventListener("click", function() { 
+                loadChat(chat.id);
+                // remove selected class from all list items
+                const allListItems = document.querySelectorAll(".chat-list-item");
+                allListItems.forEach(item => item.classList.remove("chat-list-selected"));
+                // add selected class to the clicked list item
+                this.classList.add("chat-list-selected");
+                
+            });
             savedChatsList.appendChild(listItem);
         });
     } else {
@@ -160,6 +173,7 @@ function save_chat_message(chatId, sender, message) {
         body: JSON.stringify({ chat_id: chatId, sender: sender, message: message })
     });
 }
+
 
 sendButton.addEventListener("click", async (event) => {
     event.preventDefault();
@@ -198,7 +212,6 @@ sendButton.addEventListener("click", async (event) => {
     sendButton.setAttribute("aria-busy", "true");
 
     try {
-
         const response = await fetch("/chat/send", {
             method: "POST",
             headers: {
@@ -220,6 +233,7 @@ sendButton.addEventListener("click", async (event) => {
             chatMessages.scrollTop = chatMessages.scrollHeight;
             // save the bot message to the server immediately
             save_chat_message(currentChatId, "bot", displayText);
+
         } else {
             alert("Error: " + result.message);
         }
@@ -231,6 +245,14 @@ sendButton.addEventListener("click", async (event) => {
         sendButton.disabled = false;
         sendButton.removeAttribute("aria-busy");
     }
+});
+
+
+
+// Add event listener to the search input to filter chats as the user types
+searchChatsInput.addEventListener("input", (event) => {
+    const query = event.target.value.trim();
+    getChatHistory(query);
 });
 
 
