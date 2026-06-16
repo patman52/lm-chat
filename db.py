@@ -99,7 +99,7 @@ class Database:
         query = session.query(Chat)
         if title_query:
             query = query.filter(Chat.title.ilike(f"%{title_query}%"))
-        return query.limit(max_results).all()
+        return query.order_by(Chat.id.desc()).limit(max_results).all()
 
     def delete_chat(self, chat_id: Optional[int] = None, chat_title: Optional[str] = None) -> None:
         """

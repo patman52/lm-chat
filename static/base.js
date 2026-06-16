@@ -112,7 +112,7 @@ async function createNewChat(chat_title) {
 }
 
 
-function loadChat(chatId) {
+function loadChat(chatId = null, chatTitle = null) {
     // fetches the chat history for the given chat ID and populates the chat messages area with the conversation history
     fetch(`/chat/${chatId}`)
         .then(response => response.json())
@@ -127,7 +127,7 @@ function loadChat(chatId) {
                     conversationHistory.push({ sender: msg.sender, content: msg.message });
                 });
                 currentChatId = chatId;
-                chatTitleInput.value = data.title || "Chat";
+                chatTitleInput.value = chatTitle || data.title || "Chat";
             } else {
                 alert("Error: " + data.message);
             }
@@ -153,8 +153,9 @@ async function getChatHistory(title_filter = "") {
             const listItem = document.createElement("li");
             listItem.className = "chat-list-item";
             listItem.textContent = chat.title;
+            listItem.dataset.chatId = chat.id; // Store the chat ID in a data attribute
             listItem.addEventListener("click", function() { 
-                loadChat(chat.id);
+                loadChat(chat.id, chat.title);
                 // remove selected class from all list items
                 const allListItems = document.querySelectorAll(".chat-list-item");
                 allListItems.forEach(item => item.classList.remove("chat-list-selected"));
@@ -217,7 +218,8 @@ sendButton.addEventListener("click", async (event) => {
     sendButton.classList.add("loading");
     sendButton.disabled = true;
     sendButton.setAttribute("aria-busy", "true");
-
+    disableButtons();
+    
     try {
         const response = await fetch("/chat/send", {
             method: "POST",
@@ -249,7 +251,7 @@ sendButton.addEventListener("click", async (event) => {
         alert("An error occurred while sending the message.");
     } finally {
         sendButton.classList.remove("loading");
-        sendButton.disabled = false;
+        enableButtons();
         sendButton.removeAttribute("aria-busy");
     }
 });
@@ -318,6 +320,7 @@ deleteChatButton.addEventListener("click", async () => {
             alert("Chat deleted successfully.");
             currentChatId = null;
             conversationHistory.length = 0;
+            chatTitleInput.value = "";
             chatMessages.innerHTML = "";
             await getChatHistory();
         }
@@ -330,6 +333,26 @@ deleteChatButton.addEventListener("click", async () => {
 
 });
 
-window.addEventListener('DOMContentLoaded', () => {
-    getChatHistory();
+
+function disableButtons() {
+    newChatButton.disabled = true;
+    deleteChatButton.disabled = true;
+}
+
+
+function enableButtons() {
+    newChatButton.disabled = false;
+    deleteChatButton.disabled = false;
+}
+
+
+window.addEventListener('DOMContentLoaded', async () => {
+    await getChatHistory();
+    // select the most recent chat in the chat list if it exists
+    const first = document.querySelector(".chat-list-item");
+    if (!first) return;
+
+    first.classList.add("chat-list-selected");
+    const firstID = Number(first.dataset.chatId);
+    loadChat(firstID, first.textContent);
 });

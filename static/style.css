@@ -251,6 +251,13 @@ body {
 	border-color: rgba(62, 92, 45, 0.8);
 }
 
+#new-chat-button:disabled {	
+		background: rgba(220, 53, 69, 0.05);
+	border-color: rgba(220, 53, 69, 0.15);
+	color: rgba(220, 53, 69, 0.5);
+	cursor: not-allowed;
+}
+
 #delete-chat-button {
 	border-radius: 12px;
 	border: 1px solid rgba(220, 53, 69, 0.25);
@@ -265,6 +272,13 @@ body {
 #delete-chat-button:hover {
 	background: rgba(220, 53, 69, 0.2);
 	border-color: rgba(220, 53, 69, 0.8);
+}
+
+#delete-chat-button:disabled {
+	background: rgba(220, 53, 69, 0.05);
+	border-color: rgba(220, 53, 69, 0.15);
+	color: rgba(220, 53, 69, 0.5);
+	cursor: not-allowed;
 }
 
 .chat-container {
