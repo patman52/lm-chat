@@ -1,11 +1,27 @@
+"""
+chat_client.py
+
+This module defines the ChatClient class, which provides methods for interacting with the LM API.
+
+The ChatClient class includes the following methods:
+- load_api_token: Loads the LM API token from the environment variable.
+- load_api_url: Loads the LM API URL from the environment variable.
+- model_names: A property that returns the list of available model display names.
+- get_available_models: Retrieves the list of available models from the LM API and loads the associated
+    data.
+- send_prompt: Sends a prompt to the LM API and returns the response.
+
+Author: P Tunis
+"""
+
 import os
 import json
+import logging
 from typing import List, Optional
 
 import requests
-from dotenv import load_dotenv
 
-load_dotenv()
+logger = logging.getLogger(__name__)
 
 
 class ChatClient:
@@ -15,7 +31,7 @@ class ChatClient:
         self._models: List[str] = []
 
         if not self.api_token:
-            print("WARNING - LM API token not found. Please set the LM_API_TOKEN environment variable if using authentication.")
+            logger.warning("LM API token not found. Please set the LM_API_TOKEN environment variable if using authentication.")
         if not self.api_url:
             raise ValueError("LM API URL not found. Please set the LM_API_URL environment variable.")
 
@@ -75,7 +91,7 @@ class ChatClient:
             self._models = response_data["models"]
 
         if verbose:
-            print(json.dumps(response_data, indent=2))
+            logger.info(json.dumps(response_data, indent=2))
 
     def _get_model_key_by_name(self, model_name: str) -> Optional[str]:
         """
@@ -113,15 +129,20 @@ class ChatClient:
         if self.api_token:
             headers["Authorization"] = f"Bearer {self.api_token}"
 
-        response = requests.post(
-            f"{self.api_url}/chat",
-            headers=headers,
-            json={
-                "model": model_key,
-                "input": message
-            }
-        )
-        response.raise_for_status()
-        response_data = response.json()
+        try:
+            response = requests.post(
+                f"{self.api_url}/chat",
+                headers=headers,
+                json={
+                    "model": model_key,
+                    "input": message
+                }
+            )
+            response.raise_for_status()
+            response_data = response.json()
 
-        return response_data.get("output", "")
+            return response_data.get("output", "")
+        except requests.RequestException as e:
+            logger.error(f"Error sending prompt to LM API: {e}")
+            raise
+        

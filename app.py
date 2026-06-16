@@ -1,3 +1,11 @@
+"""
+app.py
+
+This module defines the FastAPI application for the LM Chat application. 
+It sets up the API endpoints for handling chat interactions, including creating new chats, sending messages, and retrieving chat history.
+
+Author: P Tunis
+"""
 
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -9,6 +17,7 @@ from fastapi.templating import Jinja2Templates
 
 from chat_client import ChatClient
 from db import db
+
 
 _PROJECT_ROOT = Path(__file__).parent
 
@@ -69,12 +78,9 @@ def get_chats(request: Request, title_query: str = None, max_results: int = 25):
 @app.post("/chat/new")
 async def new_chat(request: Request):
     data = await request.json()
-
     chat_title = data.get("title", "New Chat")
-
     chat = app.state.db.create_chat(chat_title)
 
-    # Handle new chat creation logic here
     return JSONResponse(content={"status": "success", "chat_id": chat.id})
 
 
@@ -88,7 +94,6 @@ async def new_message(request: Request):
 
     app.state.db.create_chat_message(chat_id, sender, message)
 
-    # Handle new message logic here (e.g., save to database)
     return JSONResponse(content={"status": "success", "chat_id": chat_id, "sender": sender, "message": message})
 
 

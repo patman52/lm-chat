@@ -219,3 +219,4 @@ __marimo__/
 
 # local sqlite database files
 *.db
+logs/

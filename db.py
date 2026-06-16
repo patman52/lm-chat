@@ -1,10 +1,31 @@
+"""
+db.py
 
+This module defines the Database class, which provides methods for interacting with the database using SQLAlchemy. 
+
+The Database class includes the following methods:
+- get_session: Returns a new session from the session factory.
+- create_schema: Creates the database schema based on the provided Base class.
+- create_chat: Creates a new chat in the database with the specified title.
+- get_chat: Retrieves a chat by its ID or title.
+- get_multiple_chats: Retrieves multiple chats, optionally filtered by a title query.
+- delete_chat: Deletes a chat by its ID or title.
+- create_chat_message: Creates a new chat message in the database for a specified chat ID,
+    sender, and message content.
+
+Author: P Tunis
+"""
+
+import logging
 from typing import Optional
 
 from db_base.session import SessionLocal, engine
 from db_base.base import Base
 from sqlalchemy_models.chat import Chat
 from sqlalchemy_models.chat_message import ChatMessage
+
+logger = logging.getLogger(__name__)
+
 
 class Database:
     """
@@ -46,9 +67,11 @@ class Database:
                 session.add(chat)
                 session.commit()
                 session.refresh(chat)
+                logger.info(f"Created chat with ID {chat.id} and title '{chat.title}'")
                 return chat
             except:
                 session.rollback()
+                logger.exception("Failed to create chat")
                 raise
 
     def get_chat(self, chat_id: Optional[int] = None, chat_title: Optional[str] = None) -> Optional[Chat]:
@@ -109,8 +132,10 @@ class Database:
                 if chat:
                     session.delete(chat)
                     session.commit()
+                    logger.info(f"Deleted chat with ID {chat.id} and title '{chat.title}'")
             except:
                 session.rollback()
+                logger.exception("Failed to delete chat")
                 raise
 
     def create_chat_message(self, chat_id: int, sender: str, message: str) -> ChatMessage:
@@ -131,11 +156,12 @@ class Database:
                 session.add(chat_message)
                 session.commit()
                 session.refresh(chat_message)
+                logger.info(f"Created chat message with ID {chat_message.id} in chat ID {chat_id}")
                 return chat_message
             except:
                 session.rollback()
+                logger.exception("Failed to create chat message")
                 raise
-        
 
     def get_chat_messages(self, chat_id: int) -> list[ChatMessage]:
         """
@@ -148,8 +174,7 @@ class Database:
         """
         with self.get_session() as session:
             return session.query(ChatMessage).filter(ChatMessage.chat_id == chat_id).order_by(ChatMessage.id).all()
-
-
+        
 
 db = Database(SessionLocal, engine)
 
