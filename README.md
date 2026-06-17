@@ -158,11 +158,10 @@ rm lm_chat.db  # Or delete via your OS file manager
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+1. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+2. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+3. Push to the branch (`git push origin feature/AmazingFeature`)
+4. Open a Pull Request
 
 ---
 
@@ -176,6 +175,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - **LM Studio:** [https://lmstudio.ai](https://lmstudio.ai)
 - **FastAPI Docs:** [https://fastapi.tiangolo.com](https://fastapi.tiangolo.com)
-- **Uvicorn Docs:** [https://www.uvicorn.org](https://www.uvicorn.org)
+- **Uvicorn Docs:** [https://uvicorn.dev/](https://uvicorn.dev/)
 
 ---
