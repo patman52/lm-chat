@@ -18,38 +18,50 @@
             <p class="eyebrow">LM Chat</p>
             <h1>Talk to your model</h1>
         </header>
-        <!-- Chat container to the left -->
+        <!-- Chat container -->
         <section id="chat-shell" class="chat-section">
-            <div class="model-selection">
-                <label for="model-select">Model</label>
-                <select id="model-select" name="model">
-                    {% for model in model_names %}
-                        <option value="{{ model }}">{{ model }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            
             <div class="chat-container">
-                <div class="chat-messages" id="chat-messages" aria-live="polite">
-                    <!-- chat messages will be appended here -->
+                <div class="input-section">
+                    <h2 class="input-section-title">Input Section</h2>
+                    <div class="model-selection">
+                        <label for="model-select">Model</label>
+                        <select id="model-select" name="model">
+                            {% for model in model_names %}
+                                <option value="{{ model }}">{{ model }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <form class="chat-input" onsubmit="return false;">
+                        <textarea id="chat-input" placeholder="Type your message here..." rows="6"></textarea>
+
+                        <div class="upload-box" id="file-drop-zone">
+                            <div class="upload-icon">📊</div>
+                            <p>Drag and drop files here to upload</p>
+                        </div>
+
+                        <button id="new-chat-button" type="button">New Chat</button>
+                        <!-- popup for chat title -->
+                        <div class="modal-box" id="chat-title-modal" style="display: none;">
+                            <h2>Enter Chat Title</h2>
+                            <input type="text" id="chat-title-input" placeholder="Chat Title">
+                            <div class="modal-actions">
+                                <button type="button" class="btn-cancel" id="cancel-chat-title">Cancel</button>
+                                <button type="button" class="btn-save" id="save-chat-title">Save</button>
+                            </div>
+                        </div>
+
+                        <button id="send-button" type="submit">Send</button>
+                        <button id="export-chat" type="button">Export Chat</button>
+                        <button id="delete-chat-button" type="button">Delete Chat</button>
+                    </form>
                 </div>
 
-                <form class="chat-input" onsubmit="return false;">
-                    <textarea id="chat-input" placeholder="Type your message here..." rows="6"></textarea>
-                    <button id="new-chat-button" type="button">New Chat</button>
-                    <!-- popup for chat title -->
-                    <div class="modal-box" id="chat-title-modal" style="display: none;">
-                        <h2>Enter Chat Title</h2>
-                        <input type="text" id="chat-title-input" placeholder="Chat Title">
-                        <div class="modal-actions">
-                            <button type="button" class="btn-cancel" id="cancel-chat-title">Cancel</button>
-                            <button type="button" class="btn-save" id="save-chat-title">Save</button>
-                        </div>
-                    </div>
-                    <button id="send-button" type="submit">Send</button>
-                    <button id="export-chat" type="button">Export Chat</button>
-                    <button id="delete-chat-button" type="button">Delete Chat</button>
-                </form>
+                <!-- Right side Chat messages -->
+            <div class="chat-history-panel">
+                <h2 class="chat-history-title">Chat History</h2>
+                <div class="chat-messages" id="chat-messages" aria-live="polite"></div>
+            </div>
             </div>
         </section>
         <!-- Sidebar to the right -->

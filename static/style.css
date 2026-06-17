@@ -34,7 +34,7 @@ body {
 }
 
 .layout {
-    width: min(1200px, 100%);
+    width: min(1800px, 100%);
     margin: 0 auto;
     min-height: calc(100vh - 64px);
     align-content: start;
@@ -138,6 +138,34 @@ body {
 .model-selection label {
 	font-size: 0.88rem;
 	color: var(--ink-soft);
+}
+
+
+.upload-box {
+    border: 3px dashed #ccc;
+    border-radius: 15px;
+    padding: 40px 20px;
+    text-align: center;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    background: #f9f9f9;
+    position: relative;
+}
+
+.upload-box:hover {
+    border-color: #667eea;
+    background: #f0f4ff;
+}
+
+.upload-box.dragover {
+    border-color: #667eea;
+    background: #e8efff;
+    transform: scale(1.02);
+}
+
+.upload-box.has-file {
+    border-color: #4caf50;
+    background: #f1f8f4;
 }
 
 /* chat title popup box */
@@ -306,12 +334,30 @@ body {
 
 .chat-container {
 	display: grid;
-	gap: 12px;
+	grid-template-columns: minmax(280px, 320px) minmax(0, 10.0fr);
+	gap: 16px;
+	align-items: stretch;
+	height: calc(100vh - 150px);
 }
 
 .chat-header {
 	display: flex;
 	gap: 12px;
+}
+
+
+.input-section {
+	display: grid;
+	gap: 12px;
+	align-content: start;
+	align-self: start;
+	padding-right: 16px;
+	border-right: 1px solid rgba(62, 92, 45, 0.18);
+}
+
+.input-section textarea {
+	resize: none;
+	min-height: 150px;
 }
 
 .chat-header input {
@@ -335,14 +381,24 @@ body {
 }
 
 .chat-messages {
-	min-height: 460px;
-	max-height: 55vh;
+	min-height: 0;
+	height: 100%;
 	overflow-y: auto;
 	border-radius: 16px;
 	border: 1px solid rgba(54, 83, 39, 0.2);
 	background:
 		linear-gradient(180deg, rgba(245, 249, 241, 0.86), rgba(230, 238, 223, 0.76));
 	padding: 14px;
+	overflow-y: auto;
+	height: auto;
+}
+
+.chat-history-panel {
+    display: grid;
+	grid-template-rows: auto minmax(0, 1fr);
+    gap: 8px;
+    min-width: 0;
+	min-height: 0;
 }
 
 .chat-input {
@@ -426,7 +482,7 @@ body {
 	}
 }
 
-@media (max-width: 680px) {
+@media (max-width: 768px) {
 	body {
 		padding: 18px 12px;
 	}
@@ -442,6 +498,18 @@ body {
 	.chat-section {
 		border-radius: 18px;
 		padding: 14px;
+	}
+
+		.chat-container {
+			grid-template-columns: 1fr;
+			height: auto;
+	}
+	
+	.input-section {
+		border-right: none;
+		border-top: 1px solid #e0e0e0;
+		padding-right: 0;
+		padding-top: 20px;
 	}
 
 	.chat-messages {
