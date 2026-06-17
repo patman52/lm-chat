@@ -190,8 +190,11 @@ sendButton.addEventListener("click", async (event) => {
     if (!currentChatId) {
         await createNewChat(chatTitleInput.value.trim() || "New Chat");
     }
-
+    console.log("Current Chat ID:", currentChatId); // Debugging log to check the current chat ID
+    
     const userMessage = chatInput.value.trim();
+    console.log("User Message:", userMessage); // Debugging log to check the user message
+    
     if (!userMessage) return;
 
     // save the user message to the server immediately
@@ -251,6 +254,7 @@ sendButton.addEventListener("click", async (event) => {
         alert("An error occurred while sending the message.");
     } finally {
         sendButton.classList.remove("loading");
+        sendButton.disabled = false;
         enableButtons();
         sendButton.removeAttribute("aria-busy");
     }
