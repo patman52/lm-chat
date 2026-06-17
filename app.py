@@ -62,6 +62,7 @@ def chat(request: Request):
 @app.get("/chat/{chat_id}")
 def get_chat_history(request: Request, chat_id: int):
     chat_messages = app.state.db.get_chat_messages(chat_id)
+    # todo add file context to the messages data if it exists for each message in the chat history, so that it can be displayed in the UI along with the sender and message content
     messages_data = [{"sender": msg.sender, "message": msg.message} for msg in chat_messages]
     return JSONResponse(content={"status": "success", "messages": messages_data})
 
@@ -91,8 +92,9 @@ async def new_message(request: Request):
     chat_id = data.get("chat_id")
     sender = data.get("sender")
     message = data.get("message")
+    file_context = data.get("file_context")  # Optional field for file attachment content
 
-    app.state.db.create_chat_message(chat_id, sender, message)
+    app.state.db.create_chat_message(chat_id, sender, message, file_context)
 
     return JSONResponse(content={"status": "success", "chat_id": chat_id, "sender": sender, "message": message})
 
@@ -102,11 +104,21 @@ async def send_prompt(request: Request):
     data = await request.json()
     message = data.get("message")
     model = data.get("model")
+    file_context = data.get("file_context")  # Optional field for file attachment content
 
-    if not message or not model:
-        return {"error": "Message and model are required."}
+    if (not message and not file_context) or not model:
+        return {"error": "Message, file context, and model are required."}
 
-    response = chat_client.send_prompt(message, model)
+    # combine the message and file context into a single prompt for the chat client
+    if file_context is not None:
+        if message:
+            prompt = f"{message}\n\nFile Context:\n{file_context}"
+        else:
+            prompt = f"File Context:\n{file_context}"
+    else:
+        prompt = message
+
+    response = chat_client.send_prompt(prompt, model)
 
     return JSONResponse(content={"status": "success", "response": response})
 

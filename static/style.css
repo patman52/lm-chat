@@ -78,8 +78,6 @@ body {
 	padding: 22px;
 	display: grid;
 	gap: 16px;
-	flex-direction: column;
-	flex: 1;
 	transition: background 0.3s ease, border-color 0.3s ease;
 }
 
@@ -87,7 +85,6 @@ body {
 	grid-area: sidebar;
 	align-content: start;
 	grid-auto-rows: max-content;
-	width: 100%;
 	background: var(--panel);
 	backdrop-filter: blur(8px);
 	border: 1px solid var(--panel-border);
@@ -142,30 +139,68 @@ body {
 
 
 .upload-box {
-    border: 3px dashed #ccc;
+	border: 2px dashed rgba(52, 88, 38, 0.35);
     border-radius: 15px;
-    padding: 40px 20px;
+	padding: 22px 16px;
     text-align: center;
-    transition: all 0.3s ease;
+	transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
     cursor: pointer;
-    background: #f9f9f9;
+	background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(238, 246, 230, 0.9));
     position: relative;
+	display: grid;
+	gap: 8px;
+	justify-items: center;
 }
 
 .upload-box:hover {
-    border-color: #667eea;
-    background: #f0f4ff;
+	border-color: rgba(47, 110, 42, 0.65);
+	background: linear-gradient(180deg, rgba(248, 253, 243, 0.96), rgba(229, 241, 218, 0.92));
+	box-shadow: 0 10px 24px rgba(35, 84, 31, 0.14);
+	transform: translateY(-1px);
 }
 
 .upload-box.dragover {
-    border-color: #667eea;
-    background: #e8efff;
+	border-color: var(--accent);
+	background: linear-gradient(180deg, rgba(234, 247, 222, 0.98), rgba(218, 236, 200, 0.96));
+	box-shadow: 0 0 0 4px rgba(47, 110, 42, 0.16), 0 16px 30px rgba(35, 84, 31, 0.2);
     transform: scale(1.02);
 }
 
 .upload-box.has-file {
-    border-color: #4caf50;
-    background: #f1f8f4;
+	border-color: #4f8f3a;
+	background: linear-gradient(180deg, rgba(244, 251, 237, 0.96), rgba(229, 243, 215, 0.92));
+}
+
+.upload-icon {
+	font-size: 1.35rem;
+}
+
+.upload-hint {
+	margin: 0;
+	color: var(--ink-soft);
+	font-size: 0.92rem;
+}
+
+.upload-file-list {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	display: grid;
+	gap: 6px;
+	width: 100%;
+}
+
+.upload-file-list li {
+	border: 1px solid rgba(62, 92, 45, 0.22);
+	border-radius: 10px;
+	background: rgba(255, 255, 255, 0.78);
+	color: var(--ink);
+	font-size: 0.86rem;
+	padding: 6px 8px;
+	text-align: left;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
 
 /* chat title popup box */
@@ -389,7 +424,6 @@ body {
 	background:
 		linear-gradient(180deg, rgba(245, 249, 241, 0.86), rgba(230, 238, 223, 0.76));
 	padding: 14px;
-	overflow-y: auto;
 	height: auto;
 }
 

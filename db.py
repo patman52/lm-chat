@@ -138,7 +138,7 @@ class Database:
                 logger.exception("Failed to delete chat")
                 raise
 
-    def create_chat_message(self, chat_id: int, sender: str, message: str) -> ChatMessage:
+    def create_chat_message(self, chat_id: int, sender: str, message: str, file_context: Optional[str] = None) -> ChatMessage:
         """
         Create a new chat message in the database.
 
@@ -146,13 +146,14 @@ class Database:
             chat_id: The ID of the chat to which the message belongs.
             sender: The sender of the message ('user' or 'bot').
             message: The content of the message.
+            file_context: Optional field for file attachment content.
 
         Returns:
             The created ChatMessage object.
         """
         with self.get_session() as session:
             try:
-                chat_message = ChatMessage(chat_id=chat_id, sender=sender, message=message)
+                chat_message = ChatMessage(chat_id=chat_id, sender=sender, message=message, file_context=file_context)
                 session.add(chat_message)
                 session.commit()
                 session.refresh(chat_message)

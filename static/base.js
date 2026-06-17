@@ -9,12 +9,57 @@ const saveChatTitleButton = document.getElementById("save-chat-title");
 const cancelChatTitleButton = document.getElementById("cancel-chat-title");
 const deleteChatButton = document.getElementById("delete-chat-button");
 const exportChatButton = document.getElementById("export-chat");
+const fileDropZone = document.getElementById("file-drop-zone");
+const uploadHint = document.getElementById("upload-hint");
+const uploadFileList = document.getElementById("upload-file-list");
+const MAX_UPLOAD_FILES = 3;
+const MAX_FILE_SIZE_BYTES = 1024 * 1024;
 
 let conversationHistory = [];
 let currentChatId = null; // This will be set when a chat is loaded or created
 let chatTitleInput = document.getElementById("chat-title-input");
 let savedChatsList = document.getElementById("saved-chats-list");
+let pendingFileContent = null; // This will hold the content of a file that has been dropped and is waiting to be sent with the next message
+let pendingFileNames = [];
 
+function clearUploadState() {
+    pendingFileContent = null;
+    pendingFileNames = [];
+    uploadFileList.innerHTML = "";
+    uploadHint.textContent = "Drag and drop up to 3 files here";
+    fileDropZone.classList.remove("has-file");
+    chatInput.placeholder = "Type your message here...";
+}
+
+function updateUploadBox(names) {
+    uploadFileList.innerHTML = "";
+    pendingFileNames = names;
+
+    if (pendingFileNames.length === 0) {
+        clearUploadState();
+        return;
+    }
+
+    pendingFileNames.forEach((name) => {
+        const item = document.createElement("li");
+        item.textContent = name;
+        uploadFileList.appendChild(item);
+    });
+
+    const fileLabel = pendingFileNames.length === 1 ? "file" : "files";
+    uploadHint.textContent = `${pendingFileNames.length} ${fileLabel} attached. They will be sent with your next message.`;
+    chatInput.placeholder = `${pendingFileNames.length} ${fileLabel} attached. Add an optional message.`;
+    fileDropZone.classList.add("has-file");
+}
+
+function readTextFile(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (event) => resolve(event.target.result);
+        reader.onerror = () => reject(new Error(`Failed to read file: ${file.name}`));
+        reader.readAsText(file);
+    });
+}
 
 function toDisplayText(value) {
     if (Array.isArray(value)) {
@@ -122,6 +167,8 @@ function loadChat(chatId = null, chatTitle = null) {
                 conversationHistory = []; // Clear the conversation history before loading new chat
                 chatMessages.innerHTML = "";
                 let messages = data.messages || [];
+                // TODO load the file name and context for each message if it exsits, and display the file name in the chat bubble,
+                // and include the file context when resending the message to the server for generating a response, but do not display the file context in the chat bubble
                 messages.forEach(msg => {
                     const cssClass = msg.sender === "user" ? "user-message" : "bot-message";
                     chatMessages.appendChild(createBubble(`${msg.sender}:`, msg.message, cssClass, true));
@@ -172,14 +219,14 @@ async function getChatHistory(title_filter = "") {
 }
 
 
-function save_chat_message(chatId, sender, message) {
+function save_chat_message(chatId, sender, message, fileContext = null) {
     // sends a POST request to save a chat message to the server for the given chat ID, sender, and message content
     fetch("/chat/new-message", {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
         },
-        body: JSON.stringify({ chat_id: chatId, sender: sender, message: message })
+        body: JSON.stringify({ chat_id: chatId, sender: sender, message: message, file_context: fileContext })
     });
 }
 
@@ -188,15 +235,15 @@ sendButton.addEventListener("click", async (event) => {
     event.preventDefault();
 
     // if the current chat ID is not set, create a new chat first
-    if (!currentChatId) {
+    if (!currentChatId){
         await createNewChat(chatTitleInput.value.trim() || "New Chat");
     }
     
     const userMessage = chatInput.value.trim();
-    if (!userMessage) return;
+    if (!userMessage && !pendingFileContent) return;
 
     // save the user message to the server immediately
-    save_chat_message(currentChatId, "user", userMessage);
+    save_chat_message(currentChatId, "user", userMessage, pendingFileContent);
 
     // clear the user message input immediately to give feedback that the message is being processed
     chatInput.value = "";
@@ -229,9 +276,13 @@ sendButton.addEventListener("click", async (event) => {
             },
             body: JSON.stringify({
                 message: conversationHistory.map(item => item.content).join("\n"),
+                file_context: pendingFileContent, // Include the pending file content in the request
                 model: selectedModel
             })
         });
+
+        // clear the pending file content after sending the message
+        pendingFileContent = null;      
 
         const result = await response.json();
 
@@ -243,6 +294,7 @@ sendButton.addEventListener("click", async (event) => {
             chatMessages.scrollTop = chatMessages.scrollHeight;
             // save the bot message to the server immediately
             save_chat_message(currentChatId, "bot", displayText);
+            clearUploadState();
 
         } else {
             alert("Error: " + result.message);
@@ -266,7 +318,22 @@ searchChatsInput.addEventListener("input", (event) => {
 });
 
 
+function hideButtons() {
+    newChatButton.style.display = "none";
+    sendButton.style.display = "none";
+    deleteChatButton.style.display = "none";
+    exportChatButton.style.display = "none";
+}
+
+function showButtons() {
+    newChatButton.style.display = "inline-block";
+    sendButton.style.display = "inline-block";
+    deleteChatButton.style.display = "inline-block";
+    exportChatButton.style.display = "inline-block";
+}
+
 function openChatTitleModal() {
+    hideButtons();
     chatTitleModal.style.display = "grid";
     chatTitleInput.value = ""; // Set the input value to the current chat title
     chatTitleInput.focus();
@@ -274,6 +341,7 @@ function openChatTitleModal() {
 
 
 function closeChatTitleModal() {
+    showButtons();
     chatTitleModal.style.display = "none";
 }
 
@@ -371,6 +439,61 @@ function exportChat() {
 exportChatButton.addEventListener("click", exportChat);
 
 
+fileDropZone.addEventListener("dragover", (event) => {
+    event.preventDefault();
+    fileDropZone.classList.add("dragover");
+});
+
+fileDropZone.addEventListener("dragleave", (event) => {
+    event.preventDefault();
+    fileDropZone.classList.remove("dragover");
+});
+
+fileDropZone.addEventListener("drop", handleFileDrop);
+
+
+async function handleFileDrop(event) {
+    // take a file and read its contents, do not add it to the chat history, but send it with the next message as part of the context
+    event.preventDefault();
+    fileDropZone.classList.remove("dragover");
+
+    const droppedFiles = Array.from(event.dataTransfer.files || []);
+    if (droppedFiles.length === 0) {
+        return;
+    }
+
+    if (droppedFiles.length > MAX_UPLOAD_FILES) {
+        alert(`You can upload a maximum of ${MAX_UPLOAD_FILES} files at a time.`);
+    }
+
+    const candidateFiles = droppedFiles.slice(0, MAX_UPLOAD_FILES);
+    const oversizedFiles = candidateFiles.filter((file) => file.size >= MAX_FILE_SIZE_BYTES);
+
+    if (oversizedFiles.length > 0) {
+        const names = oversizedFiles.map((file) => file.name).join(", ");
+        alert(`These files are too large (must be less than 1 MB each): ${names}`);
+    }
+
+    const filesToRead = candidateFiles.filter((file) => file.size < MAX_FILE_SIZE_BYTES);
+
+    if (filesToRead.length === 0) {
+        clearUploadState();
+        return;
+    }
+
+    try {
+        const fileContents = await Promise.all(filesToRead.map((file) => readTextFile(file)));
+        pendingFileContent = fileContents
+            .map((content, index) => `\n\n[Context from uploaded file: ${filesToRead[index].name}]\n${content}`)
+            .join("");
+        updateUploadBox(filesToRead.map((file) => file.name));
+    } catch (error) {
+        console.error(error);
+        alert("One or more files could not be read. Please try again.");
+    }
+}
+
+
 window.addEventListener('DOMContentLoaded', async () => {
     await getChatHistory();
     // select the most recent chat in the chat list if it exists
@@ -380,4 +503,5 @@ window.addEventListener('DOMContentLoaded', async () => {
     first.classList.add("chat-list-selected");
     const firstID = Number(first.dataset.chatId);
     loadChat(firstID, first.textContent);
+    clearUploadState();
 });
