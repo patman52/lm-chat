@@ -22,7 +22,7 @@ load_dotenv()
 # set up logging configuration to local log folder with timestamped log files
 os.makedirs("logs", exist_ok=True)
 log_level = os.environ.get("LOG_LEVEL", "INFO").upper()
-log_file = os.path.join("logs", f"lm_chat_{log_level.lower()}_{os.getpid()}.log")
+log_file = os.path.join("logs", f"lm_chat.log")
 
 logging.basicConfig(
     level=log_level,
