@@ -8,6 +8,7 @@ const chatTitleModal = document.getElementById("chat-title-modal");
 const saveChatTitleButton = document.getElementById("save-chat-title");
 const cancelChatTitleButton = document.getElementById("cancel-chat-title");
 const deleteChatButton = document.getElementById("delete-chat-button");
+const exportChatButton = document.getElementById("export-chat");
 
 let conversationHistory = [];
 let currentChatId = null; // This will be set when a chat is loaded or created
@@ -338,13 +339,36 @@ deleteChatButton.addEventListener("click", async () => {
 function disableButtons() {
     newChatButton.disabled = true;
     deleteChatButton.disabled = true;
+    exportChatButton.disabled = true;
 }
 
 
 function enableButtons() {
     newChatButton.disabled = false;
     deleteChatButton.disabled = false;
+    exportChatButton.disabled = false;
 }
+
+
+function exportChat() {
+    if (!currentChatId) {
+        alert("No chat selected to export.");
+        return
+    }
+
+    // Create a blob from the conversation history
+    const blob = new Blob([JSON.stringify(conversationHistory, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${chatTitleInput.value.trim() || "chat"}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+exportChatButton.addEventListener("click", exportChat);
 
 
 window.addEventListener('DOMContentLoaded', async () => {

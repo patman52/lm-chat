@@ -258,6 +258,29 @@ body {
 	cursor: not-allowed;
 }
 
+#export-chat {
+	border-radius: 12px;
+	border: 1px solid rgba(62, 92, 45, 0.25);
+	font-family: inherit;
+	font-size: 1rem;
+	background: rgba(47, 110, 42, 0.1);
+	color: var(--accent);
+	padding: 12px 13px;
+	transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+#export-chat:hover {
+	background: rgba(47, 110, 42, 0.2);
+	border-color: rgba(62, 92, 45, 0.8);
+}
+
+#export-chat:disabled {
+	background: rgba(47, 110, 42, 0.05);
+	border-color: rgba(62, 92, 45, 0.15);
+	color: rgba(47, 110, 42, 0.5);
+	cursor: not-allowed;
+}
+
 #delete-chat-button {
 	border-radius: 12px;
 	border: 1px solid rgba(220, 53, 69, 0.25);
