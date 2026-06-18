@@ -114,10 +114,11 @@ python main.py --host 0.0.0.0 --port 8080
 
 ### Environment Variables
 
-| Variable       | Required | Default | Description                        |
-| -------------- | -------- | ------- | ---------------------------------- |
-| `LM_API_URL`   | ✅ Yes   | —       | Full URL to LM Studio API endpoint |
-| `LM_API_TOKEN` | ❌ No    | —       | Bearer token for authentication    |
+| Variable                          | Required | Default | Description                                         |
+| --------------------------------- | -------- | ------- | --------------------------------------------------- |
+| `LM_API_URL`                      | ✅ Yes   | —       | Full URL to LM Studio API endpoint                  |
+| `LM_API_TOKEN`                    | ❌ No    | —       | Bearer token for authentication                     |
+| `LM_CHAT_MAX_FILE_CONTEXT_TOKENS` | ❌ No    | `20000` | Maximum tokens of file content included in a prompt |
 
 ---
 

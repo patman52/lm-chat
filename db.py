@@ -160,7 +160,7 @@ class Database:
                 session.refresh(chat_message)
                 if file_context is not None:
                     for file_entry in file_context:
-                        logger.info(f"Creating file context for chat message ID {chat_message.id}: {file_entry}")
+                        logger.debug(f"Creating file context for chat message ID {chat_message.id}: {file_entry}")
                         file_name = file_entry.get('file_name')
                         content = file_entry.get('content')
                         if file_name is None or content is None:

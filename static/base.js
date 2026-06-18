@@ -12,6 +12,8 @@ const exportChatButton = document.getElementById("export-chat");
 const fileDropZone = document.getElementById("file-drop-zone");
 const uploadHint = document.getElementById("upload-hint");
 const uploadFileList = document.getElementById("upload-file-list");
+
+// Constants for file upload limits
 const MAX_UPLOAD_FILES = 3;
 const MAX_FILE_SIZE_BYTES = 1024 * 1024;
 
@@ -237,6 +239,18 @@ function prepareFileContextForDisplay(fileContext) {
 }   
 
 
+function preparePromptTruncationForDisplay(promptTruncation) {
+    if (!promptTruncation || !Array.isArray(promptTruncation.details) || promptTruncation.details.length === 0) {
+        return null;
+    }
+
+    return [
+        `Prompt file context was truncated to ${promptTruncation.max_file_context_tokens} tokens.`,
+        ...promptTruncation.details
+    ].join("\n");
+}
+
+
 function prepareFileContextForServer()  {
 
     // loop through the pendingFileNames and pendingFileContent and prepare a json string with the file name and content, for example: { "file_name": "example.txt", "content": "This is the content of the file." }
@@ -332,6 +346,11 @@ sendButton.addEventListener("click", async (event) => {
         const result = await response.json();
 
         if (result.status === "success") {
+            const truncationText = preparePromptTruncationForDisplay(result.prompt_truncation);
+            if (truncationText) {
+                chatMessages.appendChild(createBubble("Context note:", truncationText, "file-context", false));
+            }
+
             // Add bot response
             let displayText = toDisplayText(result.response);
             chatMessages.appendChild(createBubble("Bot:", displayText, "bot-message", true));
@@ -507,29 +526,45 @@ async function handleFileDrop(event) {
         return;
     }
 
-    if (droppedFiles.length > MAX_UPLOAD_FILES) {
-        alert(`You can upload a maximum of ${MAX_UPLOAD_FILES} files at a time.`);
+    const existingNames = pendingFileNames.slice();
+    const existingContents = Array.isArray(pendingFileContent) ? pendingFileContent.slice() : [];
+    const existingNameSet = new Set(existingNames);
+    const availableSlots = MAX_UPLOAD_FILES - existingNames.length;
+
+    if (availableSlots <= 0) {
+        alert(`You can attach a maximum of ${MAX_UPLOAD_FILES} files. Send your message or clear attachments first.`);
+        return;
     }
 
-    const candidateFiles = droppedFiles.slice(0, MAX_UPLOAD_FILES);
-    const oversizedFiles = candidateFiles.filter((file) => file.size >= MAX_FILE_SIZE_BYTES);
+    const duplicateNameFiles = droppedFiles.filter((file) => existingNameSet.has(file.name));
+    if (duplicateNameFiles.length > 0) {
+        const names = duplicateNameFiles.map((file) => file.name).join(", ");
+        alert(`These files are already attached and were skipped: ${names}`);
+    }
+
+    const uniqueDroppedFiles = droppedFiles.filter((file) => !existingNameSet.has(file.name));
+    const oversizedFiles = uniqueDroppedFiles.filter((file) => file.size >= MAX_FILE_SIZE_BYTES);
 
     if (oversizedFiles.length > 0) {
         const names = oversizedFiles.map((file) => file.name).join(", ");
         alert(`These files are too large (must be less than 1 MB each): ${names}`);
     }
 
-    const filesToRead = candidateFiles.filter((file) => file.size < MAX_FILE_SIZE_BYTES);
+    const validSizeFiles = uniqueDroppedFiles.filter((file) => file.size < MAX_FILE_SIZE_BYTES);
+    const filesToRead = validSizeFiles.slice(0, availableSlots);
+
+    if (validSizeFiles.length > availableSlots) {
+        alert(`Only ${availableSlots} more file${availableSlots === 1 ? "" : "s"} can be attached (maximum ${MAX_UPLOAD_FILES} total).`);
+    }
 
     if (filesToRead.length === 0) {
-        clearUploadState();
         return;
     }
 
     try {
         const fileContents = await Promise.all(filesToRead.map((file) => readTextFile(file)));
-        pendingFileContent = fileContents;
-        updateUploadBox(filesToRead.map((file) => file.name));
+        pendingFileContent = existingContents.concat(fileContents);
+        updateUploadBox(existingNames.concat(filesToRead.map((file) => file.name)));
     } catch (error) {
         console.error(error);
         alert("One or more files could not be read. Please try again.");

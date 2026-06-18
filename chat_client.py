@@ -167,6 +167,6 @@ class ChatClient:
 
             return response_data.get("output", "")
         except requests.RequestException as e:
-            logger.error(f"Error sending prompt to LM API: {e}")
+            logger.exception(f"Error sending prompt to LM API: {e}")
             raise
         
