@@ -17,12 +17,13 @@ Author: P Tunis
 """
 
 import logging
-from typing import Optional
+from typing import Dict, List, Optional
 
 from db_base.session import SessionLocal, engine
 from db_base.base import Base
 from sqlalchemy_models.chat import Chat
 from sqlalchemy_models.chat_message import ChatMessage
+from sqlalchemy_models.file_context import FileContext
 
 logger = logging.getLogger(__name__)
 
@@ -138,7 +139,7 @@ class Database:
                 logger.exception("Failed to delete chat")
                 raise
 
-    def create_chat_message(self, chat_id: int, sender: str, message: str, file_context: Optional[str] = None) -> ChatMessage:
+    def create_chat_message(self, chat_id: int, sender: str, message: str, file_context: Optional[List[Dict[str, str]]] = None) -> ChatMessage:
         """
         Create a new chat message in the database.
 
@@ -146,17 +147,33 @@ class Database:
             chat_id: The ID of the chat to which the message belongs.
             sender: The sender of the message ('user' or 'bot').
             message: The content of the message.
-            file_context: Optional field for file attachment content.
+            file_context: Optional field for file attachment content. a dictionary with 'file_name' and 'content' keys.
 
         Returns:
             The created ChatMessage object.
         """
         with self.get_session() as session:
             try:
-                chat_message = ChatMessage(chat_id=chat_id, sender=sender, message=message, file_context=file_context)
+                chat_message = ChatMessage(chat_id=chat_id, sender=sender, message=message)
                 session.add(chat_message)
                 session.commit()
                 session.refresh(chat_message)
+                if file_context is not None:
+                    for file_entry in file_context:
+                        logger.info(f"Creating file context for chat message ID {chat_message.id}: {file_entry}")
+                        file_name = file_entry.get('file_name')
+                        content = file_entry.get('content')
+                        if file_name is None or content is None:
+                            raise ValueError("file_context must contain 'file_name' and 'content' keys.")
+                        
+                        if not content.strip():
+                            logger.warning(f"File context content is empty for file '{file_name}' in chat message ID {chat_message.id}. Skipping file context creation.")
+                            continue
+                        
+                        file_context_entry = FileContext(chat_message_id=chat_message.id, file_name=file_name, content=content)
+                        session.add(file_context_entry)
+                        session.commit()
+
                 logger.info(f"Created chat message with ID {chat_message.id} in chat ID {chat_id}")
                 return chat_message
             except:
@@ -164,18 +181,43 @@ class Database:
                 logger.exception("Failed to create chat message")
                 raise
 
-    def get_chat_messages(self, chat_id: int) -> list[ChatMessage]:
+    def _get_file_context_for_message(self, session, chat_message_id: int, get_file_content: bool) -> Optional[List[Dict[str, str]]]:
+        """
+        Get the associated file context for a given chat message ID.
+
+        Args:
+            session: The SQLAlchemy session to use for the query.
+            chat_message_id: The ID of the chat message for which to retrieve the file context.
+            get_file_content: If True, retrieves the associated file content. If False, only retrieves the file name without content.
+        Returns:
+            A list of dictionaries representing the file context associated with the specified chat message ID, or None if no file context is found.
+        """
+        file_context_entries = session.query(FileContext).filter(FileContext.chat_message_id == chat_message_id).all()
+
+        if get_file_content:
+            return [{"file_name": entry.file_name, "content": entry.content} for entry in file_context_entries]
+        else:
+            # Return only the file names without content
+            return [{"file_name": entry.file_name, "content": None} for entry in file_context_entries]
+
+
+    def get_chat_messages(self, chat_id: int, get_file_content: bool = False) -> list[ChatMessage]:
         """
         Get all chat messages for a given chat ID.
 
         Args:
             chat_id: The ID of the chat for which to retrieve messages.
+            get_file_content: If True, retrieves the associated file content for each chat message. If False, only retrieves the file name without content.
         Returns:
             A list of ChatMessage objects associated with the specified chat ID.
         """
         with self.get_session() as session:
-            return session.query(ChatMessage).filter(ChatMessage.chat_id == chat_id).order_by(ChatMessage.id).all()
-        
+            chat_messages = session.query(ChatMessage).filter(ChatMessage.chat_id == chat_id).order_by(ChatMessage.id).all()
+            # get the associated file context for each chat message
+            for msg in chat_messages:   
+                file_context = self._get_file_context_for_message(session, msg.id, get_file_content)
+                msg.file_context = file_context if file_context else None
+        return chat_messages
 
 db = Database(SessionLocal, engine)
 

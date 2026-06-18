@@ -7,6 +7,7 @@ It sets up the API endpoints for handling chat interactions, including creating 
 Author: P Tunis
 """
 
+import json
 import logging
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -70,7 +71,7 @@ def chat(request: Request):
 def get_chat_history(request: Request, chat_id: int):
     chat_messages = app.state.db.get_chat_messages(chat_id)
     # todo add file context to the messages data if it exists for each message in the chat history, so that it can be displayed in the UI along with the sender and message content
-    messages_data = [{"sender": msg.sender, "message": msg.message} for msg in chat_messages]
+    messages_data = [{"sender": msg.sender, "message": msg.message, "file_context": msg.file_context} for msg in chat_messages]
     return JSONResponse(content={"status": "success", "messages": messages_data})
 
 
@@ -113,12 +114,13 @@ def _prepare_prompt(chat_id: int) -> str:
     Args:
         chat_id (int): The ID of the chat for which to prepare the prompt.
     """    
-    chat_messages = app.state.db.get_chat_messages(chat_id)
+    chat_messages = app.state.db.get_chat_messages(chat_id, get_file_content=True)
     prompt_parts = []
     for msg in chat_messages:
         prompt_parts.append(f"{msg.sender}: {msg.message}")
         if msg.file_context:
-            prompt_parts.append(f"File Context:\n{msg.file_context}")
+            file_content = msg.file_context.content if hasattr(msg.file_context, 'content') else msg.file_context
+            prompt_parts.append(f"File context: {file_content}")
 
     return "\n".join(prompt_parts)
 

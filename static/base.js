@@ -19,7 +19,7 @@ let conversationHistory = [];
 let currentChatId = null; // This will be set when a chat is loaded or created
 let chatTitleInput = document.getElementById("chat-title-input");
 let savedChatsList = document.getElementById("saved-chats-list");
-let pendingFileContent = null; // This will hold the content of a file that has been dropped and is waiting to be sent with the next message
+let pendingFileContent = null; // Array of dropped file contents waiting to be sent with the next message
 let pendingFileNames = [];
 
 function clearUploadState() {
@@ -167,12 +167,22 @@ function loadChat(chatId = null, chatTitle = null) {
                 conversationHistory = []; // Clear the conversation history before loading new chat
                 chatMessages.innerHTML = "";
                 let messages = data.messages || [];
-                // TODO load the file name and context for each message if it exsits, and display the file name in the chat bubble,
-                // and include the file context when resending the message to the server for generating a response, but do not display the file context in the chat bubble
+                // load the messages into the chat area, if there are file contexts, only load the file name for reference
                 messages.forEach(msg => {
                     const cssClass = msg.sender === "user" ? "user-message" : "bot-message";
+                    const fileContextText = prepareFileContextForDisplay(msg.file_context);
+
+                    console.log(`Loading message from ${msg.sender}: ${msg.message}${fileContextText ? `\n${fileContextText}` : ""}`);
                     chatMessages.appendChild(createBubble(`${msg.sender}:`, msg.message, cssClass, true));
+                    if (fileContextText) {
+                        chatMessages.appendChild(createBubble(`Uploaded file name:`, fileContextText, "file-context", false));
+                    }
                     conversationHistory.push({ sender: msg.sender, content: msg.message });
+                    // add a separator between messages
+                    const separator = document.createElement("div");
+                    separator.className = "message-separator";
+                    separator.innerHTML = "<hr>";
+                    chatMessages.appendChild(separator);
                 });
                 currentChatId = chatId;
                 chatTitleInput.value = chatTitle || data.title || "Chat";
@@ -219,14 +229,47 @@ async function getChatHistory(title_filter = "") {
 }
 
 
-function save_chat_message(chatId, sender, message, fileContext = null) {
+function prepareFileContextForDisplay(fileContext) {
+    if (!fileContext || !Array.isArray(fileContext) || fileContext.length === 0) {
+        return null;
+    }
+    return fileContext.map(entry => `File: ${entry.file_name}`).join("\n");
+}   
+
+
+function prepareFileContextForServer()  {
+
+    // loop through the pendingFileNames and pendingFileContent and prepare a json string with the file name and content, for example: { "file_name": "example.txt", "content": "This is the content of the file." }
+    if (pendingFileNames.length === 0 || !Array.isArray(pendingFileContent) || pendingFileContent.length === 0) {
+        return null;
+    }
+
+    // create an array of file contexts for each file name and content, for example: [{ "file_name": "example1.txt", "content": "This is the content of the first file." }, { "file_name": "example2.txt", "content": "This is the content of the second file." }]
+    const fileContext = pendingFileNames.map((fileName, index) => {
+        return {
+            file_name: fileName,
+            content: pendingFileContent[index] || ""
+        };
+    });
+
+    return fileContext;
+
+}
+
+function saveChatMessage(chatId, sender, message, fileContext = null) {
     // sends a POST request to save a chat message to the server for the given chat ID, sender, and message content
+
+    const payloadFileContext = fileContext;
+
+    console.log(`Saving message for chat ID ${chatId} from ${sender}: ${message}`);
+    console.log(`File context: ${JSON.stringify(payloadFileContext)}`);
+   
     fetch("/chat/new-message", {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
         },
-        body: JSON.stringify({ chat_id: chatId, sender: sender, message: message, file_context: fileContext })
+        body: JSON.stringify({ chat_id: chatId, sender: sender, message: message, file_context: payloadFileContext })
     });
 }
 
@@ -245,7 +288,8 @@ sendButton.addEventListener("click", async (event) => {
     if (!userMessage && !pendingFileContent) return;
 
     // save the user message to the server immediately
-    save_chat_message(chatId, "user", userMessage, pendingFileContent);
+    const fileContextForServer = prepareFileContextForServer();
+    saveChatMessage(chatId, "user", userMessage, fileContextForServer);
 
     // clear the user message input immediately to give feedback that the message is being processed
     chatInput.value = "";
@@ -294,7 +338,7 @@ sendButton.addEventListener("click", async (event) => {
             conversationHistory.push({ sender: "bot", content: result.response });
             chatMessages.scrollTop = chatMessages.scrollHeight;
             // save the bot message to the server immediately
-            save_chat_message(currentChatId, "bot", displayText);
+            saveChatMessage(chatId, "bot", displayText, null);
             clearUploadState();
 
         } else {
@@ -484,9 +528,7 @@ async function handleFileDrop(event) {
 
     try {
         const fileContents = await Promise.all(filesToRead.map((file) => readTextFile(file)));
-        pendingFileContent = fileContents
-            .map((content, index) => `\n\n[Context from uploaded file: ${filesToRead[index].name}]\n${content}`)
-            .join("");
+        pendingFileContent = fileContents;
         updateUploadBox(filesToRead.map((file) => file.name));
     } catch (error) {
         console.error(error);
