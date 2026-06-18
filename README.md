@@ -35,9 +35,11 @@
 
 If you haven't already set up the LM Studio server on the machine you intend to run your LMs:
 
-1. Open LM Studio and navigate to the **Server** tab
-2. Start the local server (default port: `1234`)
-3. _(Optional)_ Create an API key for authentication via Settings → API Keys
+1. Download and install LM Studio
+2. Install your model(s) you would like to use and configure a server through the app.
+   Open LM Studio and navigate to the **Server** tab
+3. Start the local server (default port: `1234`)
+4. _(Optional)_ Create an API key for authentication via Settings → API Keys
 
 > 📚 For detailed setup instructions, see the [LM Studio Developer Documentation](https://lmstudio.ai/docs/developer)
 
@@ -158,10 +160,11 @@ rm lm_chat.db  # Or delete via your OS file manager
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
-1. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-2. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-3. Push to the branch (`git push origin feature/AmazingFeature`)
-4. Open a Pull Request
+1. For the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
 ---
 

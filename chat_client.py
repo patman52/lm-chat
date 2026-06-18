@@ -71,6 +71,25 @@ class ChatClient:
         """
         return [model["display_name"] for model in self._models]
 
+    def test_connection(self) -> bool:
+        """
+        Test available endpoints to ensure the LM API is reachable and the API token is valid.
+        Returns:
+            bool: True if the connection is successful, False otherwise.
+        """
+        
+        try:
+            self.get_available_models()
+            logger.info("Successfully connected to LM API and retrieved available models.")
+            return True
+        except requests.RequestException as e:
+            logger.error(f"Error connecting to LM API: {e}")
+            return False
+        except Exception:
+            logger.exception(f"Unknown error connecting to LM API")
+            return False
+    
+
     def get_available_models(self, verbose: bool = False) -> None:
         """
         Get the list of available models from the LM and loads the associated data.

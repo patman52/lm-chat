@@ -239,11 +239,13 @@ sendButton.addEventListener("click", async (event) => {
         await createNewChat(chatTitleInput.value.trim() || "New Chat");
     }
     
+    let chatId = currentChatId;
+
     const userMessage = chatInput.value.trim();
     if (!userMessage && !pendingFileContent) return;
 
     // save the user message to the server immediately
-    save_chat_message(currentChatId, "user", userMessage, pendingFileContent);
+    save_chat_message(chatId, "user", userMessage, pendingFileContent);
 
     // clear the user message input immediately to give feedback that the message is being processed
     chatInput.value = "";
@@ -275,8 +277,7 @@ sendButton.addEventListener("click", async (event) => {
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
-                message: conversationHistory.map(item => item.content).join("\n"),
-                file_context: pendingFileContent, // Include the pending file content in the request
+                chat_id: chatId,
                 model: selectedModel
             })
         });

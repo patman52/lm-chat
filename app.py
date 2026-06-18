@@ -7,8 +7,11 @@ It sets up the API endpoints for handling chat interactions, including creating 
 Author: P Tunis
 """
 
+import logging
 from contextlib import asynccontextmanager
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse, RedirectResponse, HTMLResponse
@@ -38,6 +41,10 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 app.state.chat_client = chat_client
+
+if not app.state.chat_client.test_connection():
+    raise ConnectionError("Unable to connect to the LM API. Please check the API URL and token.")
+
 app.state.db = db
 app.mount("/static", StaticFiles(directory=str(_PROJECT_ROOT / "static")), name="static")
 templates = Jinja2Templates(directory="templates")
@@ -99,24 +106,37 @@ async def new_message(request: Request):
     return JSONResponse(content={"status": "success", "chat_id": chat_id, "sender": sender, "message": message})
 
 
+def _prepare_prompt(chat_id: int) -> str:
+    """
+    Prepare the prompt for the LM API by combining the chat history and file context.
+
+    Args:
+        chat_id (int): The ID of the chat for which to prepare the prompt.
+    """    
+    chat_messages = app.state.db.get_chat_messages(chat_id)
+    prompt_parts = []
+    for msg in chat_messages:
+        prompt_parts.append(f"{msg.sender}: {msg.message}")
+        if msg.file_context:
+            prompt_parts.append(f"File Context:\n{msg.file_context}")
+
+    return "\n".join(prompt_parts)
+
 @app.post("/chat/send")
 async def send_prompt(request: Request):
     data = await request.json()
-    message = data.get("message")
     model = data.get("model")
-    file_context = data.get("file_context")  # Optional field for file attachment content
+    chat_id = data.get("chat_id")
 
-    if (not message and not file_context) or not model:
-        return {"error": "Message, file context, and model are required."}
+    logger.info(f"Received request to send prompt to model '{model}' for chat ID {chat_id}")
 
-    # combine the message and file context into a single prompt for the chat client
-    if file_context is not None:
-        if message:
-            prompt = f"{message}\n\nFile Context:\n{file_context}"
-        else:
-            prompt = f"File Context:\n{file_context}"
-    else:
-        prompt = message
+    if not model:
+        return JSONResponse(content={"status": "error", "message": "Model is required."}, status_code=400)
+    
+    if not chat_id:
+        return JSONResponse(content={"status": "error", "message": "Chat ID is required."}, status_code=400)
+
+    prompt = _prepare_prompt(chat_id)
 
     response = chat_client.send_prompt(prompt, model)
 
