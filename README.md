@@ -114,11 +114,13 @@ python main.py --host 0.0.0.0 --port 8080
 
 ### Environment Variables
 
-| Variable                          | Required | Default | Description                                         |
-| --------------------------------- | -------- | ------- | --------------------------------------------------- |
-| `LM_API_URL`                      | ✅ Yes   | —       | Full URL to LM Studio API endpoint                  |
-| `LM_API_TOKEN`                    | ❌ No    | —       | Bearer token for authentication                     |
-| `LM_CHAT_MAX_FILE_CONTEXT_TOKENS` | ❌ No    | `20000` | Maximum tokens of file content included in a prompt |
+| Variable                          | Required | Default | Description                                           |
+| --------------------------------- | -------- | ------- | ----------------------------------------------------- |
+| `LM_API_URL`                      | ✅ Yes   | —       | Full URL to LM Studio API endpoint                    |
+| `LM_API_TOKEN`                    | ❌ No    | —       | Bearer token for authentication                       |
+| `LM_CHAT_MAX_FILE_CONTEXT_TOKENS` | ❌ No    | `20000` | Maximum tokens of file content included in a prompt\* |
+
+\*_Set this to the maximum tokens for your loaded models_
 
 ---
 
@@ -168,6 +170,11 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 5. Open a Pull Request
 
 ---
+
+## ✅ Forthcoming Updates
+
+- Better token management; allow for per model token context length rather than global maximum tokens
+- Improved UI / UX
 
 ## 📄 License
 
